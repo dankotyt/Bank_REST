@@ -1,4 +1,4 @@
-package com.example.bankcards.dto;
+package com.example.bankcards.dto.users;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

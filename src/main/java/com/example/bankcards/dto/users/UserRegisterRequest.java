@@ -1,11 +1,7 @@
-package com.example.bankcards.dto;
+package com.example.bankcards.dto.users;
 
 import com.example.bankcards.entity.Role;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,6 +36,5 @@ public class UserRegisterRequest {
     @Size(min=8, max=64)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role role = Role.USER;
 }

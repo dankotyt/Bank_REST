@@ -1,6 +1,6 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.dto.CardDTO;
+import com.example.bankcards.dto.cards.CardDTO;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.exception.cards.CardNotFoundException;
@@ -92,6 +92,7 @@ public class CardService {
     private Card findUserCard(Long userId, String cardNumber) {
         var user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
+
         return cardRepository.findByCardNumberAndUserId(cardNumber, userId)
                 .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
     }

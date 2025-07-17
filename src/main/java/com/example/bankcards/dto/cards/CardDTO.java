@@ -1,6 +1,5 @@
-package com.example.bankcards.dto;
+package com.example.bankcards.dto.cards;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,15 +13,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardDTO {
-    @JsonProperty("cardNumber")
     private String cardNumber;
-
-    @JsonProperty("expiryDate")
     private LocalDate expiryDate;
-
-    @JsonProperty("cardHolder")
     private String cardHolder;
-
-    @JsonProperty("balance")
     private BigDecimal balance;
 }

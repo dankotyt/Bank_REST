@@ -1,7 +1,7 @@
 package com.example.bankcards.security;
 
 import com.example.bankcards.config.JwtConfig;
-import com.example.bankcards.dto.UserLoginResponse;
+import com.example.bankcards.dto.users.UserLoginResponse;
 import com.example.bankcards.entity.Role;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.auth.InvalidTokenException;

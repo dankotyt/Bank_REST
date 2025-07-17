@@ -25,8 +25,12 @@ public class TransferService {
                                          String toCardNumber, BigDecimal amount) {
         validateAmount(amount);
 
-        Card fromCard = findUserCard(userId, fromCardNumber);
-        Card toCard = findUserCard(userId, toCardNumber);
+        //чтобы вводить последние 4 цифры
+        String formatFrom = "**** **** **** " + fromCardNumber;
+        String formatTo = "**** **** **** " + toCardNumber;
+
+        Card fromCard = findUserCard(userId, formatFrom);
+        Card toCard = findUserCard(userId, formatTo);
 
         validateTransfer(fromCard, toCard, amount);
 
@@ -55,9 +59,11 @@ public class TransferService {
     }
 
     private Card findUserCard(Long userId, String cardNumber) {
+        //чтобы вводить последние 4 цифры
+        String formatCardNumber = "**** **** **** " + cardNumber;
         var user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
-        return cardRepository.findByCardNumberAndUser(cardNumber, user)
+        return cardRepository.findByCardNumberAndUser(formatCardNumber, user)
                 .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
     }
 }

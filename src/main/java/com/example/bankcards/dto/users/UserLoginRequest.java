@@ -1,11 +1,9 @@
-package com.example.bankcards.dto;
+package com.example.bankcards.dto.users;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
@@ -18,8 +16,4 @@ public class UserLoginRequest {
     private String phoneNumber;
     @NotBlank
     private String password;
-
-    public boolean isValid() {
-        return (email != null) ^ (phoneNumber != null); // XOR - либо email, либо phone
-    }
 }

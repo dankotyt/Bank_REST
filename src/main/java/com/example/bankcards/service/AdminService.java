@@ -1,7 +1,9 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.dto.CardDTO;
-import com.example.bankcards.dto.UserDTO;
+import com.example.bankcards.dto.cards.CardDTO;
+import com.example.bankcards.dto.users.UpdateUserRequest;
+import com.example.bankcards.dto.users.UserDTO;
+import com.example.bankcards.dto.users.UserRegisterRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.User;
@@ -75,8 +77,9 @@ public class AdminService {
     public CardDTO setActiveStatus(Long userId, String cardNumber) {
         var user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
-
-        Card card = cardRepository.findByCardNumberAndUser(cardNumber, user)
+        //чтобы вводить последние 4 цифры
+        String formatCardNumber = "**** **** **** " + cardNumber;
+        Card card = cardRepository.findByCardNumberAndUser(formatCardNumber, user)
                 .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
 
         if (card.getStatus() != CardStatus.ACTIVE) {
@@ -92,8 +95,9 @@ public class AdminService {
     public CardDTO blockCard(Long userId, String cardNumber) {
         var user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
-
-        Card card = cardRepository.findByCardNumberAndUser(cardNumber, user)
+        //чтобы вводить последние 4 цифры
+        String formatCardNumber = "**** **** **** " + cardNumber;
+        Card card = cardRepository.findByCardNumberAndUser(formatCardNumber, user)
                 .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
 
         if (card.getStatus() != CardStatus.ACTIVE) {
@@ -110,7 +114,10 @@ public class AdminService {
         var user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        Card card = cardRepository.findByCardNumberAndUser(cardNumber, user)
+        //чтобы вводить последние 4 цифры
+        String formatCardNumber = "**** **** **** " + cardNumber;
+
+        Card card = cardRepository.findByCardNumberAndUser(formatCardNumber, user)
                 .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
 
         cardRepository.delete(card);
@@ -154,49 +161,49 @@ public class AdminService {
         return mapper.toDTO(user);
     }
 
-    public UserDTO createUser(UserDTO userDTO) {
+    public UserDTO createUser(UserRegisterRequest request) {
         var user = new User();
-        user.setName(userDTO.getName());
-        user.setSurname(userDTO.getSurname());
-        user.setPatronymic(userDTO.getPatronymic());
-        user.setBirthday(userDTO.getBirthday());
-        user.setEmail(userDTO.getEmail());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
+        user.setName(request.getName());
+        user.setSurname(request.getSurname());
+        user.setPatronymic(request.getPatronymic());
+        user.setBirthday(request.getBirthday());
+        user.setEmail(request.getEmail());
+        user.setPhoneNumber(request.getPhoneNumber());
 
         User savedUser = userRepository.save(user);
         return mapper.toDTO(savedUser);
     }
 
-    public UserDTO updateUser(Long userId, UserDTO userDTO) {
+    public UserDTO updateUser(Long userId, UpdateUserRequest request) {
         var existedUser = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
         String currentRefreshToken = existedUser.getRefreshToken();
         LocalDateTime currentRefreshTokenExpiry = existedUser.getRefreshTokenExpiry();
 
-        if (userDTO.getName() != null) {
-            existedUser.setName(userDTO.getName());
+        if (request.getName() != null) {
+            existedUser.setName(request.getName());
         }
-        if (userDTO.getSurname() != null) {
-            existedUser.setSurname(userDTO.getSurname());
+        if (request.getSurname() != null) {
+            existedUser.setSurname(request.getSurname());
         }
-        if (userDTO.getPatronymic() != null) {
-            existedUser.setPatronymic(userDTO.getPatronymic());
+        if (request.getPatronymic() != null) {
+            existedUser.setPatronymic(request.getPatronymic());
         }
-        if (userDTO.getBirthday() != null) {
-            existedUser.setBirthday(userDTO.getBirthday());
+        if (request.getBirthday() != null) {
+            existedUser.setBirthday(request.getBirthday());
         }
-        if (userDTO.getEmail() != null && !userDTO.getEmail().equals(existedUser.getEmail())) {
-            if (userRepository.existsByEmail(userDTO.getEmail())) {
-                throw new EmailBusyException(userDTO.getEmail());
+        if (request.getEmail() != null && !request.getEmail().equals(existedUser.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new EmailBusyException(request.getEmail());
             }
-            existedUser.setEmail(userDTO.getEmail());
+            existedUser.setEmail(request.getEmail());
         }
-        if (userDTO.getPhoneNumber() != null && !userDTO.getPhoneNumber().equals(existedUser.getPhoneNumber())) {
-            if (userRepository.existsByEmail(userDTO.getPhoneNumber())) {
-                throw new PhoneNumberBusyException(userDTO.getPhoneNumber());
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().equals(existedUser.getPhoneNumber())) {
+            if (userRepository.existsByEmail(request.getPhoneNumber())) {
+                throw new PhoneNumberBusyException(request.getPhoneNumber());
             }
-            existedUser.setPhoneNumber(userDTO.getPhoneNumber());
+            existedUser.setPhoneNumber(request.getPhoneNumber());
         }
         existedUser.setRefreshToken(currentRefreshToken);
         existedUser.setRefreshTokenExpiry(currentRefreshTokenExpiry);

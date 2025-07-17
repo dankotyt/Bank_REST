@@ -52,7 +52,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/refresh").authenticated()
                 .requestMatchers("/api/v1/auth/logout").authenticated()
                 .requestMatchers("/api/v1/admin").hasRole("ADMIN")
-                .requestMatchers("/api/v1/cards/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/v1/users/**").hasAnyRole("USER")
                 .anyRequest().authenticated()
         )
                 .exceptionHandling(exception -> exception

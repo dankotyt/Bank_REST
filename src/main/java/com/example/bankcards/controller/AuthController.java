@@ -1,8 +1,8 @@
 package com.example.bankcards.controller;
 
-import com.example.bankcards.dto.UserLoginRequest;
-import com.example.bankcards.dto.UserLoginResponse;
-import com.example.bankcards.dto.UserRegisterRequest;
+import com.example.bankcards.dto.users.UserLoginRequest;
+import com.example.bankcards.dto.users.UserLoginResponse;
+import com.example.bankcards.dto.users.UserRegisterRequest;
 import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.security.CookieService;
 import com.example.bankcards.service.AuthService;
