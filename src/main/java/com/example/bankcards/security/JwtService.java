@@ -9,8 +9,11 @@ import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.UserMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
@@ -31,14 +34,17 @@ import java.util.function.Function;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Getter
 public class JwtService {
     private final UserRepository userRepository;
     private final JwtConfig jwtConfig;
     private final SecretKey secretKey;
     private final UserMapper userMapper;
     private final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();
-    private final long refreshTtl;
-    private final long accessTtl;
+    @Value("${jwt.refresh-ttl}")
+    private long refreshTtl;
+    @Value("${jwt.access-ttl}")
+    private long accessTtl;
 
     //TOKEN FACTORY========
     private String createAccessToken(User user, List<String> authorities) {
@@ -110,6 +116,16 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
+    public void revokeToken(String token) {
+        if (!isTokenExpired(token)) {
+            revokedTokens.add(token);
+        }
+    }
+
+    public boolean isTokenRevoked(String token) {
+        return revokedTokens.contains(token);
+    }
+
     public boolean isTokenValid(String token, User user) {
         try {
             final String username = extractUsername(token);
@@ -120,5 +136,33 @@ public class JwtService {
             log.error("Token validation failed", e);
             return false;
         }
+    }
+
+    public String extractAccessTokenFromRequest() {
+        try {
+            ServletRequestAttributes requestAttributes =
+                    (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+            HttpServletRequest request = requestAttributes.getRequest();
+
+            String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+            if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
+                return authHeader.substring(7);
+            }
+
+            return null;
+        } catch (IllegalStateException e) {
+            log.warn("Request context not available");
+            return null;
+        }
+    }
+
+    @Bean
+    public long accessTtl() {
+        return accessTtl;
+    }
+
+    @Bean
+    public long refreshTtl() {
+        return refreshTtl;
     }
 }
