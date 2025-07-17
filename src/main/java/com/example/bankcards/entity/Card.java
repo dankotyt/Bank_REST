@@ -20,7 +20,7 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long cardId;
 
-    @Column(nullable = false, unique = true, length = 16)
+    @Column(nullable = false)
     private String cardNumber;
 
     @Column(nullable = false)
@@ -38,4 +38,5 @@ public class Card {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
     private User user;
+
 }

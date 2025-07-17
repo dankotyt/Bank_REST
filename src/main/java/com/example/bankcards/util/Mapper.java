@@ -1,11 +1,13 @@
 package com.example.bankcards.util;
 
+import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.dto.UserDTO;
+import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserMapper {
+public class Mapper {
     public UserDTO toDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getUserId());
@@ -15,6 +17,15 @@ public class UserMapper {
         dto.setBirthday(user.getBirthday());
         dto.setEmail(user.getEmail());
         dto.setPhoneNumber(user.getPhoneNumber());
+        return dto;
+    }
+
+    public CardDTO toCardDTO(Card card) {
+        CardDTO dto = new CardDTO();
+        dto.setCardHolder(card.getCardHolder());
+        dto.setCardNumber(card.getCardNumber());
+        dto.setExpiryDate(card.getExpiryDate());
+        dto.setBalance(card.getBalance());
         return dto;
     }
 }

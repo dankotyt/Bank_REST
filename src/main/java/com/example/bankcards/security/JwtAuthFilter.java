@@ -1,6 +1,7 @@
 package com.example.bankcards.security;
 
-import com.example.bankcards.exception.InvalidTokenException;
+import com.example.bankcards.exception.auth.InvalidTokenException;
+import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -46,7 +47,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
             String username = jwtService.extractUsername(accessToken);
             var user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new InvalidTokenException("User not found!"));
+                    .orElseThrow(UserNotFoundException::new);
 
             if (!jwtService.isTokenValid(accessToken, user)) {
                 throw new InvalidTokenException("Invalid access token!");

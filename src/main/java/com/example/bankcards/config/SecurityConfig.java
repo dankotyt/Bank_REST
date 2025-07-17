@@ -51,12 +51,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/validate").permitAll()
                 .requestMatchers("/api/v1/auth/refresh").authenticated()
                 .requestMatchers("/api/v1/auth/logout").authenticated()
-                .requestMatchers("/api/v1/users/**").authenticated()
+                .requestMatchers("/api/v1/admin").hasRole("ADMIN")
+                .requestMatchers("/api/v1/cards/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
         )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Требуется аутентификация");
+                            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Authentication is necessary");
                         })
                 )
                 .authenticationProvider(authenticationProvider());
@@ -82,7 +83,7 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден!"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
     }
 
     @Bean
