@@ -14,7 +14,6 @@ import com.example.bankcards.exception.users.EmailBusyException;
 import com.example.bankcards.exception.users.PhoneNumberBusyException;
 import com.example.bankcards.exception.users.UserExistsException;
 import com.example.bankcards.exception.users.UserNotFoundException;
-import com.example.bankcards.repository.CardBaseRepository;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.CardNumberGenerator;
@@ -34,7 +33,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminService {
     private final CardRepository cardRepository;
-    private final CardBaseRepository cardBaseRepository;
     private final UserRepository userRepository;
     private final CardNumberGenerator cardNumberGenerator;
     private final Mapper mapper;

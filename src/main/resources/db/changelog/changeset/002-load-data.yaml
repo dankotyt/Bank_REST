@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-load-initial-data
+      author: Danil
+      changes:
+        - sqlFile:
+            path: db/changelog/data.sql
+            splitStatements: true
+            endDelimiter: ;
