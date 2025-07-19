@@ -1,6 +1,7 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.cards.CardDTO;
+import com.example.bankcards.dto.cards.CardReplenishmentRequest;
 import com.example.bankcards.dto.cards.UserCardRequest;
 import com.example.bankcards.dto.users.UpdateUserRequest;
 import com.example.bankcards.dto.users.UserDTO;
@@ -18,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin")
 @Slf4j
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
@@ -53,6 +54,14 @@ public class AdminController {
             @RequestBody @Valid UserCardRequest request) {
         adminService.deleteCard(request.getUserId(), cardNumber);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/cards/set_balance")
+    public ResponseEntity<CardDTO> setBalance(@Valid @RequestBody CardReplenishmentRequest request) {
+        log.info("Admin update balance for user: {} card number: {}", request.getUserId(), request.getCardNumber());
+        return ResponseEntity.ok(adminService.updateUserBalance(request.getUserId(),
+                request.getCardNumber(),
+                request.getBalance()));
     }
 
     @GetMapping("/cards/get_all_info")
@@ -90,7 +99,7 @@ public class AdminController {
         return ResponseEntity.ok(adminService.createUser(request));
     }
 
-    @PutMapping("/users/update/{userId}")
+    @PatchMapping("/users/update/{userId}")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable Long userId,
             @RequestBody @Valid UpdateUserRequest request) {

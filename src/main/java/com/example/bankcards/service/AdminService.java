@@ -6,11 +6,13 @@ import com.example.bankcards.dto.users.UserDTO;
 import com.example.bankcards.dto.users.UserRegisterRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
+import com.example.bankcards.entity.Role;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.cards.CardNotFoundException;
 import com.example.bankcards.exception.cards.CardOperationException;
 import com.example.bankcards.exception.users.EmailBusyException;
 import com.example.bankcards.exception.users.PhoneNumberBusyException;
+import com.example.bankcards.exception.users.UserExistsException;
 import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.CardBaseRepository;
 import com.example.bankcards.repository.CardRepository;
@@ -18,9 +20,11 @@ import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.CardNumberGenerator;
 import com.example.bankcards.util.Mapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +38,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final CardNumberGenerator cardNumberGenerator;
     private final Mapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     //Более интересная логика и приближена к реальности
 //    public List<String> createCard() {return cardNumberGenerator.generateBatch();}
@@ -60,9 +65,9 @@ public class AdminService {
     //======================================
 
     public CardDTO createCard(Long userId) {
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
-        var card = new Card();
+        Card card = new Card();
         card.setCardHolder(user.getName() + " " + user.getSurname());
         card.setCardNumber(cardNumberGenerator.generateNumber());
         card.setExpiryDate(LocalDate.now().plusYears(5));
@@ -75,7 +80,7 @@ public class AdminService {
 
     @Transactional
     public CardDTO setActiveStatus(Long userId, String cardNumber) {
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         //чтобы вводить последние 4 цифры
         String formatCardNumber = "**** **** **** " + cardNumber;
@@ -93,7 +98,7 @@ public class AdminService {
 
     @Transactional
     public CardDTO blockCard(Long userId, String cardNumber) {
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         //чтобы вводить последние 4 цифры
         String formatCardNumber = "**** **** **** " + cardNumber;
@@ -105,13 +110,12 @@ public class AdminService {
                     "Cannot deactivate card. Current status: " + card.getStatus());
         }
         card.setStatus(CardStatus.BLOCKED);
-        cardRepository.save(card);
         return mapper.toCardDTO(card);
     }
 
     @Transactional
     public void deleteCard(Long userId, String cardNumber) {
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
         //чтобы вводить последние 4 цифры
@@ -123,6 +127,17 @@ public class AdminService {
         cardRepository.delete(card);
     }
 
+    @Transactional
+    public CardDTO updateUserBalance(Long userId, String cardNumber, BigDecimal balance) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+        String formatCardNumber = "**** **** **** " + cardNumber;
+        Card card = cardRepository.findByCardNumberAndUser(formatCardNumber, user)
+                .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
+        card.setBalance(balance);
+        return mapper.toCardDTO(card);
+    }
+
     public List<CardDTO> getAllCards() {
         return cardRepository.findAll().stream()
                 .map(mapper::toCardDTO)
@@ -130,7 +145,7 @@ public class AdminService {
     }
 
     public List<CardDTO> getUserCards(Long userId) {
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         return cardRepository.findByUser(user).stream()
                 .map(mapper::toCardDTO)
@@ -150,18 +165,21 @@ public class AdminService {
     }
 
     public UserDTO getUserByEmail(String email) {
-        var user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
         return mapper.toDTO(user);
     }
 
     public UserDTO getUserByPhone(String phone) {
-        var user = userRepository.findByPhoneNumber(phone)
+        User user = userRepository.findByPhoneNumber(phone)
                 .orElseThrow(UserNotFoundException::new);
         return mapper.toDTO(user);
     }
 
     public UserDTO createUser(UserRegisterRequest request) {
+        if (userRepository.existsByEmailOrPhoneNumber(request.getEmail(), request.getPhoneNumber())) {
+            throw new UserExistsException("User with this email or phone number already exists!");
+        }
         var user = new User();
         user.setName(request.getName());
         user.setSurname(request.getSurname());
@@ -169,13 +187,15 @@ public class AdminService {
         user.setBirthday(request.getBirthday());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
 
         User savedUser = userRepository.save(user);
         return mapper.toDTO(savedUser);
     }
 
     public UserDTO updateUser(Long userId, UpdateUserRequest request) {
-        var existedUser = userRepository.findById(userId)
+        User existedUser = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
         String currentRefreshToken = existedUser.getRefreshToken();
@@ -214,7 +234,7 @@ public class AdminService {
 
     @Transactional
     public void deleteUser(Long userId) {
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         userRepository.delete(user);
     }

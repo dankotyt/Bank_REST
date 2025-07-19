@@ -1,5 +1,8 @@
 package com.example.bankcards.dto.cards;
 
+import com.example.bankcards.entity.CardStatus;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,4 +20,5 @@ public class CardDTO {
     private LocalDate expiryDate;
     private String cardHolder;
     private BigDecimal balance;
+    private CardStatus status;
 }

@@ -12,9 +12,29 @@ jwt:
   access-ttl: ${JWT_ACCESS_TTL}
   refresh-ttl: ${JWT_REFRESH_TTL}
 
-encryption:
-  salt: ${}
-  secret: ${}
+#encryption:
+#  salt: ${}
+#  secret: ${}
 
 server:
   port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bank_system_db?currentSchema=public
+    username: ${ALL_PRIVILEGES_USER_LOGIN}
+    password: ${ALL_PRIVILEGES_USER_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+    database: postgresql
+  liquibase:
+    enabled: false
+

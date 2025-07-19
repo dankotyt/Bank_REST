@@ -3,10 +3,12 @@ package com.example.bankcards.dto.users;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
     private Long id;
     private String name;
@@ -15,4 +17,5 @@ public class UserDTO {
     private LocalDate birthday;
     private String email;
     private String phoneNumber;
+    private LocalDateTime createdAt;
 }

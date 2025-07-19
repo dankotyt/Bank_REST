@@ -17,6 +17,7 @@ public class Mapper {
         dto.setBirthday(user.getBirthday());
         dto.setEmail(user.getEmail());
         dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setCreatedAt(user.getCreatedAt());
         return dto;
     }
 
@@ -26,6 +27,7 @@ public class Mapper {
         dto.setCardNumber(card.getCardNumber());
         dto.setExpiryDate(card.getExpiryDate());
         dto.setBalance(card.getBalance());
+        dto.setStatus(card.getStatus());
         return dto;
     }
 }

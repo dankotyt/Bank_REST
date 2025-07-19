@@ -1,14 +1,15 @@
 package com.example.bankcards.dto.cards;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@NoArgsConstructor
+@Setter
 @AllArgsConstructor
-public class UserCardRequest {
-    @NotNull
-    private Long userId;
+@NoArgsConstructor
+public class TransferResponse {
+    private CardDTO fromCard;
+    private CardDTO toCard;
 }

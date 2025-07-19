@@ -2,6 +2,7 @@ package com.example.bankcards.dto.users;
 
 import com.example.bankcards.entity.Role;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserRegisterRequest {
     @NotNull(message = "The field couldn`t be empty!")
     private String name;

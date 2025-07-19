@@ -1,12 +1,15 @@
 package com.example.bankcards.service;
 
+import com.example.bankcards.dto.cards.TransferResponse;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
+import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.cards.CardNotFoundException;
 import com.example.bankcards.exception.cards.CardOperationException;
 import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +23,9 @@ import java.util.List;
 public class TransferService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
+    private final Mapper mapper;
 
-    public void transferBetweenUserCards(Long userId, String fromCardNumber,
+    public TransferResponse transferBetweenUserCards(Long userId, String fromCardNumber,
                                          String toCardNumber, BigDecimal amount) {
         validateAmount(amount);
 
@@ -35,6 +39,11 @@ public class TransferService {
         validateTransfer(fromCard, toCard, amount);
 
         performTransfer(fromCard, toCard, amount);
+
+        return new TransferResponse(
+                mapper.toCardDTO(fromCard),
+                mapper.toCardDTO(toCard)
+        );
     }
 
     private void validateAmount(BigDecimal amount) {
@@ -59,11 +68,9 @@ public class TransferService {
     }
 
     private Card findUserCard(Long userId, String cardNumber) {
-        //чтобы вводить последние 4 цифры
-        String formatCardNumber = "**** **** **** " + cardNumber;
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
-        return cardRepository.findByCardNumberAndUser(formatCardNumber, user)
+        return cardRepository.findByCardNumberAndUser(cardNumber, user)
                 .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
     }
 }

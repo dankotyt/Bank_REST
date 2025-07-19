@@ -2,6 +2,7 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.cards.CardDTO;
 import com.example.bankcards.dto.cards.TransferRequest;
+import com.example.bankcards.dto.cards.TransferResponse;
 import com.example.bankcards.dto.users.UserDTO;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.service.CardService;
@@ -27,67 +28,68 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 @RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasRole('ROLE_USER')")
 public class UserController {
     private final UserService userService;
     private final CardService cardService;
     private final TransferService transferService;
 
     @GetMapping("/cards")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CardDTO>> getUserCards(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal User user,
             @RequestParam(required = false) String search,
-            @PageableDefault(sort = "createdAt", direction = DESC) Pageable pageable) {
+            @PageableDefault(sort = "expiryDate", direction = DESC) Pageable pageable) {
 
-        Long userId = ((User) userDetails).getUserId();
+        Long userId = user.getUserId();
         log.info("User {} requested cards list", userId);
         return ResponseEntity.ok(cardService.getUserCards(userId, search, pageable));
     }
 
     @GetMapping("/cards/{cardNumber}/balance")
     public ResponseEntity<BigDecimal> getCardBalance(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal User user,
             @PathVariable String cardNumber) {
 
-        Long userId = ((User) userDetails).getUserId();
+        Long userId = user.getUserId();
         log.info("User {} requested balance for card {}", userId, cardNumber);
         return ResponseEntity.ok(cardService.getCardBalance(userId, cardNumber));
     }
 
     @PostMapping("/cards/{cardNumber}/block")
     public ResponseEntity<Void> blockCard(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal User user,
             @PathVariable String cardNumber) {
 
-        Long userId = ((User) userDetails).getUserId();
+        Long userId = user.getUserId();
         log.info("User {} requested to block card {}", userId, cardNumber);
         cardService.blockCard(userId, cardNumber);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<Void> transferBetweenCards(
-            @AuthenticationPrincipal UserDetails userDetails,
+    public ResponseEntity<TransferResponse> transferBetweenCards(
+            @AuthenticationPrincipal User user,
             @Valid @RequestBody TransferRequest request) {
 
-        Long userId = ((User) userDetails).getUserId();
+        Long userId = user.getUserId();
         log.info("User {} initiated transfer: {}", userId, request);
 
-        transferService.transferBetweenUserCards(
+        TransferResponse response = transferService.transferBetweenUserCards(
                 userId,
                 request.getFromCardNumber(),
                 request.getToCardNumber(),
                 request.getAmount()
         );
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/profile")
     public ResponseEntity<UserDTO> getUserProfile(
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal User user) {
 
-        Long userId = ((User) userDetails).getUserId();
+        Long userId = user.getUserId();
         log.info("User {} requested profile", userId);
         return ResponseEntity.ok(userService.getUserProfile(userId));
     }

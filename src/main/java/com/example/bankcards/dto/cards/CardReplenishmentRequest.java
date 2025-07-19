@@ -1,14 +1,18 @@
 package com.example.bankcards.dto.cards;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
-@NoArgsConstructor
+@Setter
 @AllArgsConstructor
-public class UserCardRequest {
-    @NotNull
+@NoArgsConstructor
+public class CardReplenishmentRequest {
     private Long userId;
+    private String cardNumber;
+    private BigDecimal balance;
 }

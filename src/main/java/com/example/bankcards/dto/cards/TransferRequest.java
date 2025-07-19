@@ -17,11 +17,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class TransferRequest {
     @NotBlank
-    @Size(min = 16, max = 16)
+    @Size(min = 4, max = 4)
     private String fromCardNumber;
 
     @NotBlank
-    @Size(min = 16, max = 16)
+    @Size(min = 4, max = 4)
     private String toCardNumber;
 
     @NotNull

@@ -3,6 +3,7 @@ package com.example.bankcards.service;
 import com.example.bankcards.dto.cards.CardDTO;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
+import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.cards.CardNotFoundException;
 import com.example.bankcards.exception.cards.CardOperationException;
 import com.example.bankcards.exception.users.UserNotFoundException;
@@ -31,7 +32,7 @@ public class CardService {
 //    private final UserMapper userMapper;
 //
 //    public CardDTO activateCard(Long userId) {
-//        var user = userRepository.findById(userId)
+//        User user = userRepository.findById(userId)
 //                .orElseThrow(() -> new UserNotFoundException("User not found"));
 //        var card = new Card();
 //        card.setCardHolder(user.getName() + " " + user.getSurname());
@@ -90,11 +91,14 @@ public class CardService {
     }
 
     private Card findUserCard(Long userId, String cardNumber) {
-        var user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
-        return cardRepository.findByCardNumberAndUserId(cardNumber, userId)
-                .orElseThrow(() -> new CardNotFoundException(cardNumber, user.getEmail()));
+        //чтобы вводить последние 4 цифры
+        String formatCardNumber = "**** **** **** " + cardNumber;
+
+        return cardRepository.findByCardNumberAndUser_UserId(formatCardNumber, userId)
+                .orElseThrow(() -> new CardNotFoundException(formatCardNumber, user.getEmail()));
     }
 
     private void validateCardBlock(Card card) {

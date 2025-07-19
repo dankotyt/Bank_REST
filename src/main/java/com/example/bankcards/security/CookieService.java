@@ -1,33 +1,37 @@
 package com.example.bankcards.security;
 
+import com.example.bankcards.config.JwtConfig;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CookieService {
-    private final JwtService jwtService;
+    private final JwtConfig jwtConfig;
 
     public void setAccessTokenCookie(HttpServletResponse response, String accessToken) {
         ResponseCookie cookie = ResponseCookie.from("__Host-auth-token", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge((int) jwtService.getAccessTtl() / 1000)
+                .maxAge((int) jwtConfig.getAccessTtl() / 1000)
                 .sameSite("Strict")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        log.info("Setting refresh token cookie: {}", refreshToken);
         ResponseCookie cookie = ResponseCookie.from("__Host-refresh", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge((int) jwtService.getRefreshTtl() / 1000)
+                .maxAge((int) jwtConfig.getRefreshTtl() / 1000)
                 .sameSite("Strict")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

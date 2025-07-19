@@ -3,6 +3,7 @@ package com.example.bankcards.service;
 import com.example.bankcards.dto.users.UserLoginRequest;
 import com.example.bankcards.dto.users.UserLoginResponse;
 import com.example.bankcards.dto.users.UserRegisterRequest;
+import com.example.bankcards.entity.Role;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.auth.InvalidPasswordException;
 import com.example.bankcards.exception.auth.InvalidTokenException;
@@ -32,7 +33,7 @@ public class AuthService {
                 .surname(userRegisterRequest.getSurname())
                 .patronymic(userRegisterRequest.getPatronymic())
                 .birthday(userRegisterRequest.getBirthday())
-                .role(userRegisterRequest.getRole())
+                .role(Role.ADMIN)
                 .email(userRegisterRequest.getEmail())
                 .phoneNumber(String.valueOf(userRegisterRequest.getPhoneNumber()))
                 .password(passwordEncoder.encode(userRegisterRequest.getPassword()))
@@ -43,7 +44,7 @@ public class AuthService {
     }
 
     public UserLoginResponse login(UserLoginRequest request) {
-        var user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(UserNotFoundException::new);
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidPasswordException();

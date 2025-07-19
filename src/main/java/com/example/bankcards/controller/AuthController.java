@@ -25,7 +25,7 @@ public class AuthController {
             @RequestBody UserRegisterRequest request,
             HttpServletResponse response) {
 
-        var loginResponse = authService.register(request);
+        UserLoginResponse loginResponse = authService.register(request);
         cookieService.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
         return ResponseEntity.ok(loginResponse);
     }
@@ -34,7 +34,7 @@ public class AuthController {
     public ResponseEntity<UserLoginResponse> loginUser(
             @RequestBody UserLoginRequest request,
             HttpServletResponse response) {
-        var loginResponse = authService.login(request);
+        UserLoginResponse loginResponse = authService.login(request);
         cookieService.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
         return ResponseEntity.ok(loginResponse);
     }

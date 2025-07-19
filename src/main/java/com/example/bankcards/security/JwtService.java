@@ -8,6 +8,7 @@ import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.Mapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
-import io.jsonwebtoken.Jwts;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -31,50 +32,28 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-@Component
+@Service
 @RequiredArgsConstructor
 @Slf4j
 @Getter
 public class JwtService {
     private final UserRepository userRepository;
     private final JwtConfig jwtConfig;
-    private final SecretKey secretKey;
     private final Mapper mapper;
     private final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();
-    @Value("${jwt.refresh-ttl}")
-    private long refreshTtl;
-    @Value("${jwt.access-ttl}")
-    private long accessTtl;
+    private final JwtTokenFactory jwtTokenFactory;
+    private final SecretKey secretKey;
 
-    //TOKEN FACTORY========
-    private String createAccessToken(User user, List<String> authorities) {
-        return Jwts.builder()
-                .subject(user.getEmail())
-                .issuedAt(new Date())
-                .expiration(Date.from(Instant.now().plusMillis(accessTtl)))
-                .claim("authorities", authorities)
-                .signWith(secretKey)
-                .compact();
-    }
-
-    private String createRefreshToken(User user) {
-        return Jwts.builder()
-                .subject(user.getEmail())
-                .issuedAt(new Date())
-                .expiration(Date.from(Instant.now().plusMillis(refreshTtl)))
-                .signWith(secretKey)
-                .compact();
-    }
     //=====================
 
     public UserLoginResponse generateTokenPair(User user) {
         List<String> authorities = user.getRole() == Role.ADMIN
-                ? List.of("ADMIN")
-                : List.of("USER");
-        String accessToken = createAccessToken(user, authorities);
-        String refreshToken = createRefreshToken(user);
+                ? List.of("ROLE_ADMIN")
+                : List.of("ROLE_USER");
+        String accessToken = jwtTokenFactory.createAccessToken(user, authorities);
+        String refreshToken = jwtTokenFactory.createRefreshToken(user);
 
-        LocalDateTime expiry = LocalDateTime.now().plusSeconds(refreshTtl / 1000);
+        LocalDateTime expiry = LocalDateTime.now().plusSeconds(jwtConfig.getRefreshTtl() / 1000);
         user.setRefreshToken(refreshToken);
         user.setRefreshTokenExpiry(expiry);
         userRepository.save(user);
@@ -85,6 +64,7 @@ public class JwtService {
                 mapper.toDTO(user)
         );
     }
+
 
     //TOKEN PARSER========
     private Claims parseToken(String token) {
@@ -154,15 +134,5 @@ public class JwtService {
             log.warn("Request context not available");
             return null;
         }
-    }
-
-    @Bean
-    public long accessTtl() {
-        return accessTtl;
-    }
-
-    @Bean
-    public long refreshTtl() {
-        return refreshTtl;
     }
 }
