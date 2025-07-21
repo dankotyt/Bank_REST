@@ -21,10 +21,11 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bank_system_db?currentSchema=public
+    url: jdbc:postgresql://db:5432/bank_system_db?currentSchema=public
     username: ${ALL_PRIVILEGES_USER_LOGIN}
     password: ${ALL_PRIVILEGES_USER_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -34,7 +35,15 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_schema: public
-    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
   liquibase:
     enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    default-schema: public
+    user: ${ALL_PRIVILEGES_USER_LOGIN}
+    password: ${ALL_PRIVILEGES_USER_PASSWORD}
+    url: jdbc:postgresql://db:5432/bank_system_db
+    parameters:
+      schemaName: public
 

@@ -1,9 +1,60 @@
-# 
-# docker-compose.yml — определяет сервисы для разработки и тестирования.
+version: '3.8'
 
-Что нужно сделать:
-  - Настроить сервисы для:
-      - PostgreSQL (или MySQL) с начальной базой.
-      - Приложения Spring Boot (если нужно).
-  - Открыть нужные порты (например, 5432, 8080).
-  - Настроить volume для хранения данных БД.
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bank_system_db
+      SPRING_DATASOURCE_USERNAME: ${ALL_PRIVILEGES_USER_LOGIN}
+      SPRING_DATASOURCE_PASSWORD: ${ALL_PRIVILEGES_USER_PASSWORD}
+      SPRING_LIQUIBASE_ENABLED: "true"
+      SPRING_LIQUIBASE_CHANGE_LOG: "classpath:/db/changelog/db.changelog-master.yaml"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: bank_system_db
+      POSTGRES_USER: ${ALL_PRIVILEGES_USER_LOGIN}
+      POSTGRES_PASSWORD: ${ALL_PRIVILEGES_USER_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ALL_PRIVILEGES_USER_LOGIN}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test:
+    build:
+      context: .
+      target: tester
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bank_system_db
+      SPRING_DATASOURCE_USERNAME: ${ALL_PRIVILEGES_USER_LOGIN}
+      SPRING_DATASOURCE_PASSWORD: ${ALL_PRIVILEGES_USER_PASSWORD}
+    command: >
+      sh -c "while ! nc -z db 5432; do sleep 1; done &&
+      ./mvnw test"
+
+volumes:
+  postgres_data:
