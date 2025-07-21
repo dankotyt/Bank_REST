@@ -1,6 +1,7 @@
 package com.example.bankcards.dto.cards;
 
 import com.example.bankcards.entity.CardStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class CardDTO {
     private String cardNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate expiryDate;
     private String cardHolder;
     private BigDecimal balance;

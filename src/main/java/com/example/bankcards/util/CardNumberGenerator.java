@@ -46,7 +46,7 @@ public class CardNumberGenerator {
         return maskCardNumber(partialNumber + checkDigit);
     }
 
-    private int checkDigit(String number) {
+    protected int checkDigit(String number) {
         int sum = 0;
         boolean checker = false;
 
@@ -64,7 +64,7 @@ public class CardNumberGenerator {
         return (10 - (sum % 10)) % 10;
     }
 
-    private String maskCardNumber(String cardNumber) {
+    protected String maskCardNumber(String cardNumber) {
         if (cardNumber.length() == 16) {
             return "**** **** **** " + cardNumber.substring(cardNumber.length() - 4);
         }

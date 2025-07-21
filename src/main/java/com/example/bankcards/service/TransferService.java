@@ -61,7 +61,7 @@ public class TransferService {
         }
     }
 
-    private void performTransfer(Card fromCard, Card toCard, BigDecimal amount) {
+    protected void performTransfer(Card fromCard, Card toCard, BigDecimal amount) {
         fromCard.setBalance(fromCard.getBalance().subtract(amount));
         toCard.setBalance(toCard.getBalance().add(amount));
         cardRepository.saveAll(List.of(fromCard, toCard));

@@ -1,6 +1,7 @@
 package com.example.bankcards.dto.users;
 
 import com.example.bankcards.entity.Role;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class UserRegisterRequest {
 
     @Past
     @NotNull(message = "The field couldn`t be empty!")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
 
     @NotNull(message = "The field couldn`t be empty!")
@@ -38,5 +40,5 @@ public class UserRegisterRequest {
     @Size(min=8, max=64)
     private String password;
 
-    private Role role = Role.USER;
+    private Role role; //Role.USER;
 }

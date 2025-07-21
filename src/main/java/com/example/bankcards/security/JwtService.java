@@ -67,7 +67,7 @@ public class JwtService {
 
 
     //TOKEN PARSER========
-    private Claims parseToken(String token) {
+    protected Claims parseToken(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(secretKey)
@@ -79,7 +79,7 @@ public class JwtService {
         }
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    protected  <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = parseToken(token);
         return claimsResolver.apply(claims);
     }
@@ -88,11 +88,11 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
     //=====================
-    private Date extractExpiration(String token) {
+    protected Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private boolean isTokenExpired(String token) {
+    protected boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 

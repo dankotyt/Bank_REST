@@ -44,6 +44,7 @@ public class AuthController {
             @CookieValue(value = "__Host-refresh", required = false) String refreshToken,
             HttpServletResponse response) {
         if (refreshToken == null) {
+            cookieService.expireAllCookies(response);
             throw new InvalidTokenException("Refresh token required");
         }
         try {

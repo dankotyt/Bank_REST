@@ -33,7 +33,7 @@ public class AuthService {
                 .surname(userRegisterRequest.getSurname())
                 .patronymic(userRegisterRequest.getPatronymic())
                 .birthday(userRegisterRequest.getBirthday())
-                .role(Role.ADMIN)
+                .role(userRegisterRequest.getRole())
                 .email(userRegisterRequest.getEmail())
                 .phoneNumber(String.valueOf(userRegisterRequest.getPhoneNumber()))
                 .password(passwordEncoder.encode(userRegisterRequest.getPassword()))
