@@ -24,6 +24,22 @@
 | Liquibase          | 4.25.0      |
 | Springdoc OpenAPI  | 2.8.9       |
 
+## ⚠️ Настройка окружения (.env)
+
+Перед первым запуском необходимо создать файл `.env` в корне проекта со следующими переменными:
+
+```ini
+# JWT Настройки
+JWT_SECRET=your-256-bit-secret-key-here
+JWT_ACCESS_TTL=15m    # Время жизни access токена (например 15 минут)
+JWT_REFRESH_TTL=7d    # Время жизни refresh токена (например 7 дней)
+
+# Учетные данные суперпользователя в БД
+ALL_PRIVILEGES_USER_LOGIN=postgres
+ALL_PRIVILEGES_USER_PASSWORD=admin
+```
+Образец можно взять по `.env.example`.
+
 ## 🚀 Запуск проекта с помощью Docker
 
 ### 📋 Предварительные требования
