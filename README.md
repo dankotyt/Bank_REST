@@ -54,4 +54,6 @@ docker compose up --build -d
 
 ### 📧 Email для связи:
 [danilkotlarov1@gmail.com](mailto:danilkotlarov1@gmail.com)
+### 📲 Telegram:
+[@eximun](t.me/eximun)
 
