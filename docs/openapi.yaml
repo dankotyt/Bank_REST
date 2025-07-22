@@ -2,6 +2,8 @@ openapi: 3.0.4
 info:
   title: Bank REST API
   description: API для управления банковскими картами и пользователями
+  contact:
+    email: danilkotlarov1@gmail.com
   version: 0.0.1
 servers:
   - url: http://localhost:8080
