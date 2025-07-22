@@ -8,6 +8,13 @@ import com.example.bankcards.entity.User;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.TransferService;
 import com.example.bankcards.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,15 +36,22 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 @RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasRole('ROLE_USER')")
+@Tag(name = "User API", description = "Операции для авторизованных пользователей")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
     private final UserService userService;
     private final CardService cardService;
     private final TransferService transferService;
 
+    @Operation(summary = "Получить карты",
+            description = "Возвращает список карт текущего пользователя с пагинацией")
+    @ApiResponse(responseCode = "200", description = "Список карт",
+            content = @Content(schema = @Schema(implementation = Page.class)))
     @GetMapping("/cards")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CardDTO>> getUserCards(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "Поисковый запрос (опционально)")
             @RequestParam(required = false) String search,
             @PageableDefault(sort = "expiryDate", direction = DESC) Pageable pageable) {
 
@@ -46,9 +60,14 @@ public class UserController {
         return ResponseEntity.ok(cardService.getUserCards(userId, search, pageable));
     }
 
+    @Operation(summary = "Получить баланс карты",
+            description = "Возвращает баланс указанной карты пользователя")
+    @ApiResponse(responseCode = "200", description = "Текущий баланс",
+            content = @Content(schema = @Schema(implementation = BigDecimal.class)))
     @GetMapping("/cards/{cardNumber}/balance")
     public ResponseEntity<BigDecimal> getCardBalance(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "Последние 4 цифры номера карты", example = "7890", required = true)
             @PathVariable String cardNumber) {
 
         Long userId = user.getUserId();
@@ -56,9 +75,12 @@ public class UserController {
         return ResponseEntity.ok(cardService.getCardBalance(userId, cardNumber));
     }
 
+    @Operation(summary = "Блокировка карты", description = "Блокирует указанную карту пользователя")
+    @ApiResponse(responseCode = "200", description = "Карта заблокирована")
     @PostMapping("/cards/{cardNumber}/block")
     public ResponseEntity<Void> blockCard(
             @AuthenticationPrincipal User user,
+            @Parameter(description = "Последние 4 цифры номера карты", example = "7890", required = true)
             @PathVariable String cardNumber) {
 
         Long userId = user.getUserId();
@@ -67,6 +89,13 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Перевод средств",
+            description = "Выполняет перевод между картами текущего пользователя")
+    @ApiResponse(responseCode = "200",
+            description = "Перевод выполнен",
+            content = @Content(schema = @Schema(implementation = TransferResponse.class)))
+    @ApiResponse(responseCode = "400",
+            description = "Недостаточно средств или другие ошибки")
     @PostMapping("/transfer")
     public ResponseEntity<TransferResponse> transferBetweenCards(
             @AuthenticationPrincipal User user,
@@ -85,6 +114,11 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Получить профиль",
+            description = "Возвращает данные текущего пользователя")
+    @ApiResponse(responseCode = "200",
+            description = "Данные пользователя",
+            content = @Content(schema = @Schema(implementation = UserDTO.class)))
     @GetMapping("/profile")
     public ResponseEntity<UserDTO> getUserProfile(
             @AuthenticationPrincipal User user) {

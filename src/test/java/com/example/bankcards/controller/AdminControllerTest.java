@@ -3,6 +3,7 @@ package com.example.bankcards.controller;
 import com.example.bankcards.config.SecurityConfig;
 import com.example.bankcards.dto.cards.CardDTO;
 import com.example.bankcards.dto.cards.CardReplenishmentRequest;
+import com.example.bankcards.dto.cards.UserCardOperationRequest;
 import com.example.bankcards.dto.cards.UserCardRequest;
 import com.example.bankcards.dto.users.UpdateUserRequest;
 import com.example.bankcards.dto.users.UserDTO;
@@ -56,6 +57,7 @@ class AdminControllerTest {
     private CardDTO testCard;
     private UserDTO testUser;
     private UserCardRequest userCardRequest;
+    private UserCardOperationRequest userCardOperationRequest;
     private CardReplenishmentRequest replenishmentRequest;
     private UserRegisterRequest registerRequest;
     private UpdateUserRequest updateRequest;
@@ -75,6 +77,7 @@ class AdminControllerTest {
         );
 
         userCardRequest = new UserCardRequest(1L);
+        userCardOperationRequest = new UserCardOperationRequest(1L, "1234");
         replenishmentRequest = new CardReplenishmentRequest(
                 1L, "**** **** **** 1234", BigDecimal.valueOf(1000)
         );
@@ -112,38 +115,48 @@ class AdminControllerTest {
     void activateCard_ShouldReturnActivatedCard() throws Exception {
         when(adminService.setActiveStatus(anyLong(), anyString())).thenReturn(testCard);
 
-        mockMvc.perform(post("/api/v1/admin/cards/activate/**** **** **** 1234")
+        mockMvc.perform(post("/api/v1/admin/cards/activate")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userCardRequest)))
+                        .content(objectMapper.writeValueAsString(userCardOperationRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value(testCard.getCardNumber()));
 
-        verify(adminService).setActiveStatus(1L, "**** **** **** 1234");
+        verify(adminService).setActiveStatus(
+                userCardOperationRequest.getUserId(),
+                userCardOperationRequest.getCardNumber()
+        );
     }
 
     @Test
     void blockCard_ShouldReturnBlockedCard() throws Exception {
         when(adminService.blockCard(anyLong(), anyString())).thenReturn(testCard);
 
-        mockMvc.perform(post("/api/v1/admin/cards/block/**** **** **** 1234")
+        mockMvc.perform(post("/api/v1/admin/cards/block")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userCardRequest)))
+                        .content(objectMapper.writeValueAsString(userCardOperationRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value(testCard.getCardNumber()));
 
-        verify(adminService).blockCard(1L, "**** **** **** 1234");
+        verify(adminService).blockCard(
+                userCardOperationRequest.getUserId(),
+                userCardOperationRequest.getCardNumber()
+        );
     }
 
     @Test
     void deleteCard_ShouldReturnNoContent() throws Exception {
-        doNothing().when(adminService).deleteCard(anyLong(), anyString());
+        Long userId = 1L;
+        String cardNumber = "1234";
 
-        mockMvc.perform(delete("/api/v1/admin/cards/delete/**** **** **** 1234")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userCardRequest)))
+        doNothing().when(adminService).deleteCard(userId, cardNumber);
+
+        mockMvc.perform(delete("/api/v1/admin/cards/delete/{cardNumber}/user/{userId}",
+                        cardNumber, userId)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        verify(adminService).deleteCard(1L, "**** **** **** 1234");
+        verify(adminService).deleteCard(userId, cardNumber);
+        verifyNoMoreInteractions(adminService);
     }
 
     @Test
