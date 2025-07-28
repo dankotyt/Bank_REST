@@ -12,6 +12,7 @@ import com.example.bankcards.exception.auth.InvalidPasswordException;
 import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.JwtService;
+import com.example.bankcards.service.auth.AuthService;
 import com.example.bankcards.service.auth.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceImplTest {
+class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -45,12 +46,16 @@ class AuthServiceImplTest {
     @InjectMocks
     private AuthServiceImpl authServiceImpl;
 
+    private AuthService authService;
+
     private User testUser;
     private UserDTO testUserDTO;
     private final LocalDateTime now = LocalDateTime.now();
 
     @BeforeEach
     void setUp() {
+        authService = authServiceImpl;
+
         testUser = User.builder()
                 .userId(1L)
                 .name("John")
@@ -86,7 +91,7 @@ class AuthServiceImplTest {
         when(jwtService.generateTokenPair(any(User.class))).thenReturn(expectedResponse);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        UserLoginResponse result = authServiceImpl.register(request);
+        UserLoginResponse result = authService.register(request);
 
         assertThat(result).isEqualTo(expectedResponse);
         assertThat(result.getUserDTO()).isNotNull();
@@ -102,7 +107,7 @@ class AuthServiceImplTest {
         );
         when(userRepository.existsByEmailOrPhoneNumber("john@example.com", "+1234567890")).thenReturn(true);
 
-        assertThatThrownBy(() -> authServiceImpl.register(request))
+        assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(UserExistsException.class)
                 .hasMessage("User with this email or phone number already exists!");
     }
@@ -118,7 +123,7 @@ class AuthServiceImplTest {
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
         when(jwtService.generateTokenPair(testUser)).thenReturn(expectedResponse);
 
-        UserLoginResponse result = authServiceImpl.login(request);
+        UserLoginResponse result = authService.login(request);
 
         assertThat(result).isEqualTo(expectedResponse);
         assertThat(result.getUserDTO()).isNotNull();
@@ -131,7 +136,7 @@ class AuthServiceImplTest {
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("wrong-password", "encoded-password")).thenReturn(false);
 
-        assertThatThrownBy(() -> authServiceImpl.login(request))
+        assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(InvalidPasswordException.class);
 
         verify(passwordEncoder).matches("wrong-password", "encoded-password");
@@ -143,7 +148,7 @@ class AuthServiceImplTest {
         UserLoginRequest request = new UserLoginRequest("wrong@example.com", "password123");
         when(userRepository.findByEmail("wrong@example.com")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authServiceImpl.login(request))
+        assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -155,7 +160,7 @@ class AuthServiceImplTest {
         when(userRepository.findByRefreshToken(refreshToken)).thenReturn(Optional.of(testUser));
         when(jwtService.extractAccessTokenFromRequest()).thenReturn("access-token");
 
-        authServiceImpl.logout(refreshToken);
+        authService.logout(refreshToken);
 
         verify(jwtService).revokeToken("access-token");
         verify(userRepository).save(testUser);
@@ -167,7 +172,7 @@ class AuthServiceImplTest {
         String refreshToken = "non-existing-token";
         when(userRepository.findByRefreshToken(refreshToken)).thenReturn(Optional.empty());
 
-        authServiceImpl.logout(refreshToken);
+        authService.logout(refreshToken);
 
         verifyNoInteractions(jwtService);
         verify(userRepository, never()).save(any());
@@ -188,7 +193,7 @@ class AuthServiceImplTest {
         when(jwtService.isTokenValid(refreshToken, testUser)).thenReturn(true);
         when(jwtService.generateTokenPair(testUser)).thenReturn(expectedResponse);
 
-        UserLoginResponse result = authServiceImpl.refreshToken(refreshToken);
+        UserLoginResponse result = authService.refreshToken(refreshToken);
 
         assertThat(result).isEqualTo(expectedResponse);
         assertThat(result.getUserDTO()).isNotNull();
@@ -197,7 +202,7 @@ class AuthServiceImplTest {
 
     @Test
     void refreshToken_WithEmptyToken_ShouldThrowException() {
-        assertThatThrownBy(() -> authServiceImpl.refreshToken(""))
+        assertThatThrownBy(() -> authService.refreshToken(""))
                 .isInstanceOf(InvalidTokenException.class)
                 .hasMessage("Refresh token is empty!");
     }
@@ -207,7 +212,7 @@ class AuthServiceImplTest {
         String refreshToken = "revoked-token";
         when(jwtService.isTokenRevoked(refreshToken)).thenReturn(true);
 
-        assertThatThrownBy(() -> authServiceImpl.refreshToken(refreshToken))
+        assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)
                 .hasMessage("Token revoked");
     }
@@ -221,7 +226,7 @@ class AuthServiceImplTest {
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(testUser));
         when(jwtService.isTokenRevoked(refreshToken)).thenReturn(false);
 
-        assertThatThrownBy(() -> authServiceImpl.refreshToken(refreshToken))
+        assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)
                 .hasMessage("Discrepancy of refresh token!");
     }
@@ -237,7 +242,7 @@ class AuthServiceImplTest {
         when(jwtService.isTokenRevoked(refreshToken)).thenReturn(false);
         when(jwtService.isTokenValid(refreshToken, testUser)).thenReturn(false);
 
-        assertThatThrownBy(() -> authServiceImpl.refreshToken(refreshToken))
+        assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)
                 .hasMessage("The refresh token is expired!");
     }
@@ -253,7 +258,7 @@ class AuthServiceImplTest {
         when(jwtService.isTokenRevoked(refreshToken)).thenReturn(false);
         when(jwtService.isTokenValid(refreshToken, testUser)).thenReturn(false);
 
-        assertThatThrownBy(() -> authServiceImpl.refreshToken(refreshToken))
+        assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)
                 .hasMessage("Refresh token is invalid!");
     }

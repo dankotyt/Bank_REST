@@ -9,6 +9,7 @@ import com.example.bankcards.exception.cards.CardNotFoundException;
 import com.example.bankcards.exception.cards.CardOperationException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.service.card.CardService;
 import com.example.bankcards.service.card.CardServiceImpl;
 import com.example.bankcards.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CardServiceImplTest {
+class CardServiceTest {
 
     @Mock
     private CardRepository cardRepository;
@@ -45,6 +46,8 @@ class CardServiceImplTest {
     private Mapper mapper;
     @InjectMocks
     private CardServiceImpl cardServiceImpl;
+
+    private CardService cardService;
 
     private Long testUserId;
     private String testSearch;
@@ -57,6 +60,8 @@ class CardServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        cardService = cardServiceImpl;
+
         testUserId = 1L;
         testSearch = "test";
         testPageable = PageRequest.of(0, 10);
@@ -86,7 +91,7 @@ class CardServiceImplTest {
                 .thenReturn(new PageImpl<>(List.of(testCard)));
         when(mapper.toCardDTO(testCard)).thenReturn(testCardDto);
 
-        Page<CardDTO> result = cardServiceImpl.getUserCards(testUserId, testSearch, testPageable);
+        Page<CardDTO> result = cardService.getUserCards(testUserId, testSearch, testPageable);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst()).isEqualTo(testCardDto);
@@ -98,7 +103,7 @@ class CardServiceImplTest {
         when(cardRepository.findAll(any(Specification.class), eq(testPageable)))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        cardServiceImpl.getUserCards(testUserId, null, testPageable);
+        cardService.getUserCards(testUserId, null, testPageable);
 
         verify(cardRepository).findAll(any(Specification.class), eq(testPageable));
     }
@@ -109,7 +114,7 @@ class CardServiceImplTest {
         when(cardRepository.findByCardNumberAndUser_UserId(testFullCardNumber, testUserId))
                 .thenReturn(Optional.of(testCard));
 
-        cardServiceImpl.blockCard(testUserId, testCardNumber);
+        cardService.blockCard(testUserId, testCardNumber);
 
         assertEquals(CardStatus.BLOCKED, testCard.getStatus());
         verify(cardRepository).save(testCard);
@@ -124,7 +129,7 @@ class CardServiceImplTest {
                 .thenReturn(Optional.of(testCard));
 
         assertThrows(CardOperationException.class,
-                () -> cardServiceImpl.blockCard(testUserId, testCardNumber));
+                () -> cardService.blockCard(testUserId, testCardNumber));
     }
 
     @Test
@@ -134,7 +139,7 @@ class CardServiceImplTest {
                 .thenReturn(Optional.empty());
 
         CardNotFoundException exception = assertThrows(CardNotFoundException.class,
-                () -> cardServiceImpl.blockCard(testUserId, testCardNumber));
+                () -> cardService.blockCard(testUserId, testCardNumber));
 
         String expectedMessage = "Card not found with number " + testFullCardNumber +
                 " for user with email " + testUser.getEmail();
@@ -147,7 +152,7 @@ class CardServiceImplTest {
         when(cardRepository.findByCardNumberAndUser_UserId(testFullCardNumber, testUserId))
                 .thenReturn(Optional.of(testCard));
 
-        BigDecimal balance = cardServiceImpl.getCardBalance(testUserId, testCardNumber);
+        BigDecimal balance = cardService.getCardBalance(testUserId, testCardNumber);
 
         assertEquals(new BigDecimal("1000.00"), balance);
     }
@@ -159,6 +164,6 @@ class CardServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(CardNotFoundException.class,
-                () -> cardServiceImpl.getCardBalance(testUserId, testCardNumber));
+                () -> cardService.getCardBalance(testUserId, testCardNumber));
     }
 }

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AdminServiceImpl {
+public class AdminServiceImpl implements AdminService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final CardNumberGenerator cardNumberGenerator;

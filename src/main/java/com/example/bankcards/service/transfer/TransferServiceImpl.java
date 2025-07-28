@@ -20,7 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class TransferServiceImpl {
+public class TransferServiceImpl implements  TransferService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final Mapper mapper;
@@ -61,7 +61,7 @@ public class TransferServiceImpl {
         }
     }
 
-    protected void performTransfer(Card fromCard, Card toCard, BigDecimal amount) {
+    private void performTransfer(Card fromCard, Card toCard, BigDecimal amount) {
         fromCard.setBalance(fromCard.getBalance().subtract(amount));
         toCard.setBalance(toCard.getBalance().add(amount));
         cardRepository.saveAll(List.of(fromCard, toCard));

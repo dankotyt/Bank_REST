@@ -24,7 +24,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CardServiceImpl {
+public class CardServiceImpl implements CardService {
 //    private final CardRepository cardRepository;
 //    private final CardBaseRepository cardBaseRepository;
 //    private final UserRepository userRepository;
