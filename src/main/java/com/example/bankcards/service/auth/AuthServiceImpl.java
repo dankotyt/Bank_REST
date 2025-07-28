@@ -16,6 +16,16 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Реализация сервиса аутентификации и авторизации.
+ * <p>
+ * Особенности реализации:
+ * <ul>
+ *   <li>Использует {@link PasswordEncoder} для безопасного хранения паролей</li>
+ *   <li>Генерирует JWT токены через {@link JwtService}</li>
+ *   <li>Автоматически устанавливает дату создания при регистрации</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -23,6 +33,12 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    /**
+     * {@inheritDoc}
+     * <p>Дополнительно проверяет уникальность email и номера телефона.
+     * Пароль хешируется перед сохранением.
+     */
+    @Override
     public UserLoginResponse register(UserRegisterRequest userRegisterRequest) {
         if (userRepository.existsByEmailOrPhoneNumber(userRegisterRequest.getEmail(), userRegisterRequest.getPhoneNumber())) {
             throw new UserExistsException("User with this email or phone number already exists!");
@@ -42,6 +58,11 @@ public class AuthServiceImpl implements AuthService {
         return jwtService.generateTokenPair(user);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>Сравнивает хеш пароля из базы с хешем введенного пароля.
+     */
+    @Override
     public UserLoginResponse login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(UserNotFoundException::new);
@@ -51,6 +72,11 @@ public class AuthServiceImpl implements AuthService {
         return jwtService.generateTokenPair(user);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>Отзывает оба токена (access и refresh) при выходе.
+     */
+    @Override
     public void logout(String refreshToken) {
         userRepository.findByRefreshToken(refreshToken)
                 .ifPresent(user -> {
@@ -61,6 +87,16 @@ public class AuthServiceImpl implements AuthService {
                 });
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>Перед генерацией новых токенов выполняет расширенную проверку:
+     * <ul>
+     *   <li>Сравнение токена с сохраненным в БД</li>
+     *   <li>Проверку срока действия</li>
+     *   <li>Проверку отзыва токена</li>
+     * </ul>
+     */
+    @Override
     public UserLoginResponse refreshToken(String refreshToken) {
 
         if (refreshToken == null || refreshToken.isEmpty()) {
@@ -90,5 +126,4 @@ public class AuthServiceImpl implements AuthService {
         jwtService.revokeToken(refreshToken);
         return tokens;
     }
-
 }

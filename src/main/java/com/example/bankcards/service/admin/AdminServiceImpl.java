@@ -29,6 +29,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация сервиса административных операций.
+ * <p>
+ * Особенности реализации:
+ * <ul>
+ *   <li>Автоматически генерирует номера карт через {@link CardNumberGenerator}</li>
+ *   <li>Форматирует номера карт (**** **** **** XXXX) при поиске</li>
+ *   <li>Устанавливает срок действия карт на 5 лет вперед</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
@@ -62,6 +72,10 @@ public class AdminServiceImpl implements AdminService {
 
     //======================================
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public CardDTO createCard(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -76,6 +90,10 @@ public class AdminServiceImpl implements AdminService {
         return mapper.toCardDTO(card);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public CardDTO setActiveStatus(Long userId, String cardNumber) {
         User user = userRepository.findById(userId)
@@ -94,6 +112,10 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public CardDTO blockCard(Long userId, String cardNumber) {
         User user = userRepository.findById(userId)
@@ -111,6 +133,10 @@ public class AdminServiceImpl implements AdminService {
         return mapper.toCardDTO(card);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public void deleteCard(Long userId, String cardNumber) {
         User user = userRepository.findById(userId)
@@ -125,6 +151,10 @@ public class AdminServiceImpl implements AdminService {
         cardRepository.delete(card);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public CardDTO updateUserBalance(Long userId, String cardNumber, BigDecimal balance) {
         User user = userRepository.findById(userId)
@@ -136,12 +166,20 @@ public class AdminServiceImpl implements AdminService {
         return mapper.toCardDTO(card);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<CardDTO> getAllCards() {
         return cardRepository.findAll().stream()
                 .map(mapper::toCardDTO)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<CardDTO> getUserCards(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -150,30 +188,50 @@ public class AdminServiceImpl implements AdminService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(mapper::toDTO)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public UserDTO getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
         return mapper.toDTO(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public UserDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
         return mapper.toDTO(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public UserDTO getUserByPhone(String phone) {
         User user = userRepository.findByPhoneNumber(phone)
                 .orElseThrow(UserNotFoundException::new);
         return mapper.toDTO(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public UserDTO createUser(UserRegisterRequest request) {
         if (userRepository.existsByEmailOrPhoneNumber(request.getEmail(), request.getPhoneNumber())) {
             throw new UserExistsException("User with this email or phone number already exists!");
@@ -192,6 +250,10 @@ public class AdminServiceImpl implements AdminService {
         return mapper.toDTO(savedUser);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public UserDTO updateUser(Long userId, UpdateUserRequest request) {
         User existedUser = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -230,6 +292,10 @@ public class AdminServiceImpl implements AdminService {
         return mapper.toDTO(existedUser);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
