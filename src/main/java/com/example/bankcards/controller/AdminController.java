@@ -7,7 +7,7 @@ import com.example.bankcards.dto.cards.UserCardRequest;
 import com.example.bankcards.dto.users.UpdateUserRequest;
 import com.example.bankcards.dto.users.UserDTO;
 import com.example.bankcards.dto.users.UserRegisterRequest;
-import com.example.bankcards.service.AdminService;
+import com.example.bankcards.service.admin.AdminServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -33,7 +33,7 @@ import java.util.List;
 @Tag(name = "Admin API", description = "Операции для администраторов")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminController {
-    private final AdminService adminService;
+    private final AdminServiceImpl adminServiceImpl;
 
     @Operation(summary = "Создать карту", description = "Создает новую карту для указанного пользователя")
     @ApiResponse(responseCode = "200", description = "Карта успешно создана",
@@ -41,7 +41,7 @@ public class AdminController {
     @PostMapping("/cards/create")
     public ResponseEntity<CardDTO> createCard(@RequestBody @Valid UserCardRequest request) {
         log.info("Admin creating card for user {}", request.getUserId());
-        return ResponseEntity.ok(adminService.createCard(request.getUserId()));
+        return ResponseEntity.ok(adminServiceImpl.createCard(request.getUserId()));
     }
 
     @Operation(summary = "Активировать карту", description = "Активирует указанную карту пользователя")
@@ -51,7 +51,7 @@ public class AdminController {
     public ResponseEntity<CardDTO> activateCard(
             @RequestBody @Valid UserCardOperationRequest request) {
         return ResponseEntity.ok(
-                adminService.setActiveStatus(request.getUserId(), request.getCardNumber())
+                adminServiceImpl.setActiveStatus(request.getUserId(), request.getCardNumber())
         );
     }
 
@@ -62,7 +62,7 @@ public class AdminController {
     public ResponseEntity<CardDTO> blockCard(
             @RequestBody @Valid UserCardOperationRequest request) {
         return ResponseEntity.ok(
-                adminService.blockCard(request.getUserId(), request.getCardNumber())
+                adminServiceImpl.blockCard(request.getUserId(), request.getCardNumber())
         );
     }
 
@@ -74,7 +74,7 @@ public class AdminController {
             @PathVariable String cardNumber,
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long userId) {
-        adminService.deleteCard(userId, cardNumber);
+        adminServiceImpl.deleteCard(userId, cardNumber);
         return ResponseEntity.noContent().build();
     }
 
@@ -84,7 +84,7 @@ public class AdminController {
     @PostMapping("/cards/set_balance")
     public ResponseEntity<CardDTO> setBalance(@Valid @RequestBody CardReplenishmentRequest request) {
         log.info("Admin update balance for user: {} card number: {}", request.getUserId(), request.getCardNumber());
-        return ResponseEntity.ok(adminService.updateUserBalance(request.getUserId(),
+        return ResponseEntity.ok(adminServiceImpl.updateUserBalance(request.getUserId(),
                 request.getCardNumber(),
                 request.getBalance()));
     }
@@ -94,7 +94,7 @@ public class AdminController {
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = CardDTO.class))))
     @GetMapping("/cards/get_all_info")
     public ResponseEntity<List<CardDTO>> getAllCards() {
-        return ResponseEntity.ok(adminService.getAllCards());
+        return ResponseEntity.ok(adminServiceImpl.getAllCards());
     }
 
 
@@ -106,7 +106,7 @@ public class AdminController {
     public ResponseEntity<List<CardDTO>> getUserCards(
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long userId) {
-        return ResponseEntity.ok(adminService.getUserCards(userId));
+        return ResponseEntity.ok(adminServiceImpl.getUserCards(userId));
     }
 
     @Operation(summary = "Получить всех пользователей",
@@ -115,7 +115,7 @@ public class AdminController {
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserDTO.class))))
     @GetMapping("/users/get_all_info")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(adminService.getAllUsers());
+        return ResponseEntity.ok(adminServiceImpl.getAllUsers());
     }
 
     @Operation(summary = "Получить пользователя по ID",
@@ -126,7 +126,7 @@ public class AdminController {
     public ResponseEntity<UserDTO> getUserById(
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long userId) {
-        return ResponseEntity.ok(adminService.getUserById(userId));
+        return ResponseEntity.ok(adminServiceImpl.getUserById(userId));
     }
 
     @Operation(summary = "Получить пользователя по email",
@@ -137,7 +137,7 @@ public class AdminController {
     public ResponseEntity<UserDTO> getUserByEmail(
             @Parameter(description = "Email пользователя", example = "user@example.com", required = true)
             @PathVariable String email) {
-        return ResponseEntity.ok(adminService.getUserByEmail(email));
+        return ResponseEntity.ok(adminServiceImpl.getUserByEmail(email));
     }
 
     @Operation(summary = "Получить пользователя по телефону",
@@ -148,7 +148,7 @@ public class AdminController {
     public ResponseEntity<UserDTO> getUserByPhoneNumber(
             @Parameter(description = "Номер телефона", example = "+79123456789", required = true)
             @PathVariable String phoneNumber) {
-        return ResponseEntity.ok(adminService.getUserByPhone(phoneNumber));
+        return ResponseEntity.ok(adminServiceImpl.getUserByPhone(phoneNumber));
     }
 
     @Operation(summary = "Создать пользователя",
@@ -157,7 +157,7 @@ public class AdminController {
             content = @Content(schema = @Schema(implementation = UserDTO.class)))
     @PostMapping("/users/create")
     public ResponseEntity<UserDTO> createUser(@RequestBody @Valid UserRegisterRequest request) {
-        return ResponseEntity.ok(adminService.createUser(request));
+        return ResponseEntity.ok(adminServiceImpl.createUser(request));
     }
 
     @Operation(summary = "Обновить пользователя",
@@ -169,7 +169,7 @@ public class AdminController {
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long userId,
             @RequestBody @Valid UpdateUserRequest request) {
-        return ResponseEntity.ok(adminService.updateUser(userId, request));
+        return ResponseEntity.ok(adminServiceImpl.updateUser(userId, request));
     }
 
     @Operation(summary = "Удалить пользователя", description = "Удаляет пользователя из системы")
@@ -178,7 +178,7 @@ public class AdminController {
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long userId) {
-        adminService.deleteUser(userId);
+        adminServiceImpl.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
 }

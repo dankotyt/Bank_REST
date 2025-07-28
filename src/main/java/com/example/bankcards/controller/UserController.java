@@ -5,9 +5,9 @@ import com.example.bankcards.dto.cards.TransferRequest;
 import com.example.bankcards.dto.cards.TransferResponse;
 import com.example.bankcards.dto.users.UserDTO;
 import com.example.bankcards.entity.User;
-import com.example.bankcards.service.CardService;
-import com.example.bankcards.service.TransferService;
-import com.example.bankcards.service.UserService;
+import com.example.bankcards.service.card.CardServiceImpl;
+import com.example.bankcards.service.transfer.TransferServiceImpl;
+import com.example.bankcards.service.user.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,7 +24,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -39,9 +38,9 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 @Tag(name = "User API", description = "Операции для авторизованных пользователей")
 @SecurityRequirement(name = "bearerAuth")
 public class UserController {
-    private final UserService userService;
-    private final CardService cardService;
-    private final TransferService transferService;
+    private final UserServiceImpl userServiceImpl;
+    private final CardServiceImpl cardServiceImpl;
+    private final TransferServiceImpl transferServiceImpl;
 
     @Operation(summary = "Получить карты",
             description = "Возвращает список карт текущего пользователя с пагинацией")
@@ -57,7 +56,7 @@ public class UserController {
 
         Long userId = user.getUserId();
         log.info("User {} requested cards list", userId);
-        return ResponseEntity.ok(cardService.getUserCards(userId, search, pageable));
+        return ResponseEntity.ok(cardServiceImpl.getUserCards(userId, search, pageable));
     }
 
     @Operation(summary = "Получить баланс карты",
@@ -72,7 +71,7 @@ public class UserController {
 
         Long userId = user.getUserId();
         log.info("User {} requested balance for card {}", userId, cardNumber);
-        return ResponseEntity.ok(cardService.getCardBalance(userId, cardNumber));
+        return ResponseEntity.ok(cardServiceImpl.getCardBalance(userId, cardNumber));
     }
 
     @Operation(summary = "Блокировка карты", description = "Блокирует указанную карту пользователя")
@@ -85,7 +84,7 @@ public class UserController {
 
         Long userId = user.getUserId();
         log.info("User {} requested to block card {}", userId, cardNumber);
-        cardService.blockCard(userId, cardNumber);
+        cardServiceImpl.blockCard(userId, cardNumber);
         return ResponseEntity.ok().build();
     }
 
@@ -104,7 +103,7 @@ public class UserController {
         Long userId = user.getUserId();
         log.info("User {} initiated transfer: {}", userId, request);
 
-        TransferResponse response = transferService.transferBetweenUserCards(
+        TransferResponse response = transferServiceImpl.transferBetweenUserCards(
                 userId,
                 request.getFromCardNumber(),
                 request.getToCardNumber(),
@@ -125,6 +124,6 @@ public class UserController {
 
         Long userId = user.getUserId();
         log.info("User {} requested profile", userId);
-        return ResponseEntity.ok(userService.getUserProfile(userId));
+        return ResponseEntity.ok(userServiceImpl.getUserProfile(userId));
     }
 }

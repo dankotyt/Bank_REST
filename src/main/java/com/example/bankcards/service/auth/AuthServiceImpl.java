@@ -1,9 +1,8 @@
-package com.example.bankcards.service;
+package com.example.bankcards.service.auth;
 
 import com.example.bankcards.dto.users.UserLoginRequest;
 import com.example.bankcards.dto.users.UserLoginResponse;
 import com.example.bankcards.dto.users.UserRegisterRequest;
-import com.example.bankcards.entity.Role;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.auth.InvalidPasswordException;
 import com.example.bankcards.exception.auth.InvalidTokenException;
@@ -19,7 +18,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;

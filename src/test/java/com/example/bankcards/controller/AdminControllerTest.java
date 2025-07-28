@@ -10,7 +10,7 @@ import com.example.bankcards.dto.users.UserDTO;
 import com.example.bankcards.dto.users.UserRegisterRequest;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.Role;
-import com.example.bankcards.service.AdminService;
+import com.example.bankcards.service.admin.AdminServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AdminControllerTest {
 
     @Mock
-    private AdminService adminService;
+    private AdminServiceImpl adminServiceImpl;
 
     @InjectMocks
     private AdminController adminController;
@@ -92,14 +92,14 @@ class AdminControllerTest {
                 "john@example.com", "+1234567891"
         );
 
-        adminController = new AdminController(adminService); // Ручное внедрение
+        adminController = new AdminController(adminServiceImpl); // Ручное внедрение
         mockMvc = MockMvcBuilders.standaloneSetup(adminController).build();
     }
 
     // Cards tests
     @Test
     void createCard_ShouldReturnCreatedCard() throws Exception {
-        when(adminService.createCard(anyLong())).thenReturn(testCard);
+        when(adminServiceImpl.createCard(anyLong())).thenReturn(testCard);
 
         mockMvc.perform(post("/api/v1/admin/cards/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,12 +108,12 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.cardNumber").value(testCard.getCardNumber()))
                 .andExpect(jsonPath("$.cardHolder").value(testCard.getCardHolder()));
 
-        verify(adminService).createCard(1L);
+        verify(adminServiceImpl).createCard(1L);
     }
 
     @Test
     void activateCard_ShouldReturnActivatedCard() throws Exception {
-        when(adminService.setActiveStatus(anyLong(), anyString())).thenReturn(testCard);
+        when(adminServiceImpl.setActiveStatus(anyLong(), anyString())).thenReturn(testCard);
 
         mockMvc.perform(post("/api/v1/admin/cards/activate")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -121,7 +121,7 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value(testCard.getCardNumber()));
 
-        verify(adminService).setActiveStatus(
+        verify(adminServiceImpl).setActiveStatus(
                 userCardOperationRequest.getUserId(),
                 userCardOperationRequest.getCardNumber()
         );
@@ -129,7 +129,7 @@ class AdminControllerTest {
 
     @Test
     void blockCard_ShouldReturnBlockedCard() throws Exception {
-        when(adminService.blockCard(anyLong(), anyString())).thenReturn(testCard);
+        when(adminServiceImpl.blockCard(anyLong(), anyString())).thenReturn(testCard);
 
         mockMvc.perform(post("/api/v1/admin/cards/block")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -137,7 +137,7 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value(testCard.getCardNumber()));
 
-        verify(adminService).blockCard(
+        verify(adminServiceImpl).blockCard(
                 userCardOperationRequest.getUserId(),
                 userCardOperationRequest.getCardNumber()
         );
@@ -148,20 +148,20 @@ class AdminControllerTest {
         Long userId = 1L;
         String cardNumber = "1234";
 
-        doNothing().when(adminService).deleteCard(userId, cardNumber);
+        doNothing().when(adminServiceImpl).deleteCard(userId, cardNumber);
 
         mockMvc.perform(delete("/api/v1/admin/cards/delete/{cardNumber}/user/{userId}",
                         cardNumber, userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        verify(adminService).deleteCard(userId, cardNumber);
-        verifyNoMoreInteractions(adminService);
+        verify(adminServiceImpl).deleteCard(userId, cardNumber);
+        verifyNoMoreInteractions(adminServiceImpl);
     }
 
     @Test
     void setBalance_ShouldReturnUpdatedCard() throws Exception {
-        when(adminService.updateUserBalance(anyLong(), anyString(), any(BigDecimal.class)))
+        when(adminServiceImpl.updateUserBalance(anyLong(), anyString(), any(BigDecimal.class)))
                 .thenReturn(testCard);
 
         mockMvc.perform(post("/api/v1/admin/cards/set_balance")
@@ -170,12 +170,12 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.balance").value(1000));
 
-        verify(adminService).updateUserBalance(1L, "**** **** **** 1234", BigDecimal.valueOf(1000));
+        verify(adminServiceImpl).updateUserBalance(1L, "**** **** **** 1234", BigDecimal.valueOf(1000));
     }
 
     @Test
     void getAllCards_ShouldReturnCardList() throws Exception {
-        when(adminService.getAllCards()).thenReturn(List.of(testCard));
+        when(adminServiceImpl.getAllCards()).thenReturn(List.of(testCard));
 
         mockMvc.perform(get("/api/v1/admin/cards/get_all_info"))
                 .andExpect(status().isOk())
@@ -185,7 +185,7 @@ class AdminControllerTest {
 
     @Test
     void getUserCards_ShouldReturnUserCards() throws Exception {
-        when(adminService.getUserCards(anyLong())).thenReturn(List.of(testCard));
+        when(adminServiceImpl.getUserCards(anyLong())).thenReturn(List.of(testCard));
 
         mockMvc.perform(get("/api/v1/admin/cards/get_by_user_id/1"))
                 .andExpect(status().isOk())
@@ -196,7 +196,7 @@ class AdminControllerTest {
     // Users tests
     @Test
     void getAllUsers_ShouldReturnUserList() throws Exception {
-        when(adminService.getAllUsers()).thenReturn(List.of(testUser));
+        when(adminServiceImpl.getAllUsers()).thenReturn(List.of(testUser));
 
         mockMvc.perform(get("/api/v1/admin/users/get_all_info"))
                 .andExpect(status().isOk())
@@ -206,7 +206,7 @@ class AdminControllerTest {
 
     @Test
     void getUserById_ShouldReturnUser() throws Exception {
-        when(adminService.getUserById(anyLong())).thenReturn(testUser);
+        when(adminServiceImpl.getUserById(anyLong())).thenReturn(testUser);
 
         mockMvc.perform(get("/api/v1/admin/users/get_by_user_id/1"))
                 .andExpect(status().isOk())
@@ -215,7 +215,7 @@ class AdminControllerTest {
 
     @Test
     void getUserByEmail_ShouldReturnUser() throws Exception {
-        when(adminService.getUserByEmail(anyString())).thenReturn(testUser);
+        when(adminServiceImpl.getUserByEmail(anyString())).thenReturn(testUser);
 
         mockMvc.perform(get("/api/v1/admin/users/get_by_email/john@example.com"))
                 .andExpect(status().isOk())
@@ -224,7 +224,7 @@ class AdminControllerTest {
 
     @Test
     void getUserByPhoneNumber_ShouldReturnUser() throws Exception {
-        when(adminService.getUserByPhone(anyString())).thenReturn(testUser);
+        when(adminServiceImpl.getUserByPhone(anyString())).thenReturn(testUser);
 
         mockMvc.perform(get("/api/v1/admin/users/get_by_phone_number/+1234567890"))
                 .andExpect(status().isOk())
@@ -233,7 +233,7 @@ class AdminControllerTest {
 
     @Test
     void createUser_ShouldReturnCreatedUser() throws Exception {
-        when(adminService.createUser(any(UserRegisterRequest.class))).thenReturn(testUser);
+        when(adminServiceImpl.createUser(any(UserRegisterRequest.class))).thenReturn(testUser);
 
         mockMvc.perform(post("/api/v1/admin/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -244,7 +244,7 @@ class AdminControllerTest {
 
     @Test
     void updateUser_ShouldReturnUpdatedUser() throws Exception {
-        when(adminService.updateUser(anyLong(), any(UpdateUserRequest.class))).thenReturn(testUser);
+        when(adminServiceImpl.updateUser(anyLong(), any(UpdateUserRequest.class))).thenReturn(testUser);
 
         mockMvc.perform(patch("/api/v1/admin/users/update/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -255,11 +255,11 @@ class AdminControllerTest {
 
     @Test
     void deleteUser_ShouldReturnNoContent() throws Exception {
-        doNothing().when(adminService).deleteUser(anyLong());
+        doNothing().when(adminServiceImpl).deleteUser(anyLong());
 
         mockMvc.perform(delete("/api/v1/admin/users/delete/1"))
                 .andExpect(status().isNoContent());
 
-        verify(adminService).deleteUser(1L);
+        verify(adminServiceImpl).deleteUser(1L);
     }
 }

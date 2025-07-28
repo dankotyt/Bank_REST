@@ -10,7 +10,7 @@ import com.example.bankcards.exception.auth.InvalidPasswordException;
 import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.exception.users.UserExistsException;
 import com.example.bankcards.security.CookieService;
-import com.example.bankcards.service.AuthService;
+import com.example.bankcards.service.auth.AuthServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
 
     @Mock
-    private AuthService authService;
+    private AuthServiceImpl authServiceImpl;
     @Mock
     private CookieService cookieService;
 
@@ -73,7 +73,7 @@ class AuthControllerTest {
                 "access", "refresh", new UserDTO()
         );
 
-        when(authService.register(any())).thenReturn(mockResponse);
+        when(authServiceImpl.register(any())).thenReturn(mockResponse);
 
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +92,7 @@ class AuthControllerTest {
                 "access-token", "refresh-token", testUserDTO
         );
 
-        when(authService.login(any(UserLoginRequest.class))).thenReturn(mockResponse);
+        when(authServiceImpl.login(any(UserLoginRequest.class))).thenReturn(mockResponse);
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +112,7 @@ class AuthControllerTest {
                 "new-access", "new-refresh", testUserDTO
         );
 
-        when(authService.refreshToken(eq(validRefreshToken))).thenReturn(mockResponse);
+        when(authServiceImpl.refreshToken(eq(validRefreshToken))).thenReturn(mockResponse);
 
         mockMvc.perform(post("/api/v1/auth/refresh")
                         .cookie(new Cookie("__Host-refresh", validRefreshToken)))
@@ -136,7 +136,7 @@ class AuthControllerTest {
     @Test
     void refresh_WhenInvalidToken_ShouldReturnUnauthorized() throws Exception {
         String invalidToken = "invalid-token";
-        when(authService.refreshToken(eq(invalidToken)))
+        when(authServiceImpl.refreshToken(eq(invalidToken)))
                 .thenThrow(new InvalidTokenException("Invalid token"));
 
         mockMvc.perform(post("/api/v1/auth/refresh")
@@ -150,13 +150,13 @@ class AuthControllerTest {
     @Test
     void logout_ShouldExpireCookies() throws Exception {
         String refreshToken = "valid-refresh-token";
-        doNothing().when(authService).logout(refreshToken);
+        doNothing().when(authServiceImpl).logout(refreshToken);
 
         mockMvc.perform(post("/api/v1/auth/logout")
                         .cookie(new Cookie("__Host-refresh", refreshToken)))
                 .andExpect(status().isOk());
 
-        verify(authService).logout(refreshToken);
+        verify(authServiceImpl).logout(refreshToken);
         verify(cookieService).expireAllCookies(any());
     }
 
@@ -165,7 +165,7 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/v1/auth/logout"))
                 .andExpect(status().isBadRequest());
 
-        verifyNoInteractions(authService);
+        verifyNoInteractions(authServiceImpl);
         verifyNoInteractions(cookieService);
     }
 
@@ -173,7 +173,7 @@ class AuthControllerTest {
     void login_WhenInvalidCredentials_ShouldReturnUnauthorized() throws Exception {
         UserLoginRequest request = new UserLoginRequest("wrong@example.com", "wrongpass");
 
-        when(authService.login(any(UserLoginRequest.class)))
+        when(authServiceImpl.login(any(UserLoginRequest.class)))
                 .thenThrow(new InvalidPasswordException());
 
         mockMvc.perform(post("/api/v1/auth/login")
@@ -192,7 +192,7 @@ class AuthControllerTest {
                 "exists@example.com", "+1234567890", "password123", Role.USER
         );
 
-        when(authService.register(any(UserRegisterRequest.class)))
+        when(authServiceImpl.register(any(UserRegisterRequest.class)))
                 .thenThrow(new UserExistsException("User already exists"));
 
         mockMvc.perform(post("/api/v1/auth/register")

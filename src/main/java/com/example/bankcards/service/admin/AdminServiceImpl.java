@@ -1,4 +1,4 @@
-package com.example.bankcards.service;
+package com.example.bankcards.service.admin;
 
 import com.example.bankcards.dto.cards.CardDTO;
 import com.example.bankcards.dto.users.UpdateUserRequest;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AdminService {
+public class AdminServiceImpl {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final CardNumberGenerator cardNumberGenerator;

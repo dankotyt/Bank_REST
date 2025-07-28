@@ -1,4 +1,4 @@
-package com.example.bankcards.service;
+package com.example.bankcards.service.card;
 
 import com.example.bankcards.dto.cards.CardDTO;
 import com.example.bankcards.entity.Card;
@@ -24,7 +24,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CardService {
+public class CardServiceImpl {
 //    private final CardRepository cardRepository;
 //    private final CardBaseRepository cardBaseRepository;
 //    private final UserRepository userRepository;

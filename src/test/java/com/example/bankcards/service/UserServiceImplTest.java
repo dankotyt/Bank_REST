@@ -4,6 +4,7 @@ import com.example.bankcards.dto.users.UserDTO;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.service.user.UserServiceImpl;
 import com.example.bankcards.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
@@ -29,7 +30,7 @@ class UserServiceTest {
     private Mapper mapper;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     private final Long testUserId = 1L;
     private User testUser;
@@ -51,7 +52,7 @@ class UserServiceTest {
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
         when(mapper.toDTO(testUser)).thenReturn(testUserDto);
 
-        UserDTO result = userService.getUserProfile(testUserId);
+        UserDTO result = userServiceImpl.getUserProfile(testUserId);
 
         assertThat(result).isEqualTo(testUserDto);
         verify(userRepository).findById(testUserId);
@@ -62,7 +63,7 @@ class UserServiceTest {
     void getUserProfile_ShouldThrowException_WhenUserNotFound() {
         when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.getUserProfile(testUserId))
+        assertThatThrownBy(() -> userServiceImpl.getUserProfile(testUserId))
                 .isInstanceOf(UserNotFoundException.class);
     }
 }

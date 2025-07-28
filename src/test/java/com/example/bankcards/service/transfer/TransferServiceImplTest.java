@@ -1,4 +1,4 @@
-package com.example.bankcards.service;
+package com.example.bankcards.service.transfer;
 
 import com.example.bankcards.dto.cards.CardDTO;
 import com.example.bankcards.dto.cards.TransferResponse;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TransferServiceTest {
+class TransferServiceImplTest {
 
     @Mock
     private CardRepository cardRepository;
@@ -41,7 +41,7 @@ class TransferServiceTest {
     private Mapper mapper;
 
     @InjectMocks
-    private TransferService transferService;
+    private TransferServiceImpl transferServiceImpl;
 
     private final Long testUserId = 1L;
     private final String testFromCardNumber = "1234";
@@ -95,7 +95,7 @@ class TransferServiceTest {
         when(mapper.toCardDTO(fromCard)).thenReturn(fromCardDto);
         when(mapper.toCardDTO(toCard)).thenReturn(toCardDto);
 
-        TransferResponse response = transferService.transferBetweenUserCards(
+        TransferResponse response = transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, testAmount);
 
         assertThat(response.getFromCard()).isEqualTo(fromCardDto);
@@ -107,7 +107,7 @@ class TransferServiceTest {
 
     @Test
     void transferBetweenUserCards_WhenNegativeAmount_ShouldThrowException() {
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, new BigDecimal("-100")))
                 .isInstanceOf(CardOperationException.class)
                 .hasMessage("Amount must be positive");
@@ -115,7 +115,7 @@ class TransferServiceTest {
 
     @Test
     void transferBetweenUserCards_WhenZeroAmount_ShouldThrowException() {
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, BigDecimal.ZERO))
                 .isInstanceOf(CardOperationException.class)
                 .hasMessage("Amount must be positive");
@@ -130,7 +130,7 @@ class TransferServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedToCard, testUser))
                 .thenReturn(Optional.of(toCard));
 
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, testAmount))
                 .isInstanceOf(CardOperationException.class)
                 .hasMessage("One of the cards is not active");
@@ -145,7 +145,7 @@ class TransferServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedToCard, testUser))
                 .thenReturn(Optional.of(toCard));
 
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, testAmount))
                 .isInstanceOf(CardOperationException.class)
                 .hasMessage("One of the cards is not active");
@@ -160,7 +160,7 @@ class TransferServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedToCard, testUser))
                 .thenReturn(Optional.of(toCard));
 
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, largeAmount))
                 .isInstanceOf(CardOperationException.class)
                 .hasMessage("Insufficient funds");
@@ -170,7 +170,7 @@ class TransferServiceTest {
     void transferBetweenUserCards_WhenUserNotFound_ShouldThrowException() {
         when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, testAmount))
                 .isInstanceOf(UserNotFoundException.class);
     }
@@ -181,7 +181,7 @@ class TransferServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedFromCard, testUser))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, testAmount))
                 .isInstanceOf(CardNotFoundException.class)
                 .hasMessageContaining("Card not found with number");
@@ -195,7 +195,7 @@ class TransferServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedToCard, testUser))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> transferService.transferBetweenUserCards(
+        assertThatThrownBy(() -> transferServiceImpl.transferBetweenUserCards(
                 testUserId, testFromCardNumber, testToCardNumber, testAmount))
                 .isInstanceOf(CardNotFoundException.class)
                 .hasMessageContaining("Card not found with number");
@@ -206,7 +206,7 @@ class TransferServiceTest {
         BigDecimal initialFromBalance = fromCard.getBalance();
         BigDecimal initialToBalance = toCard.getBalance();
 
-        transferService.performTransfer(fromCard, toCard, testAmount);
+        transferServiceImpl.performTransfer(fromCard, toCard, testAmount);
 
         assertThat(fromCard.getBalance())
                 .isEqualByComparingTo(initialFromBalance.subtract(testAmount));

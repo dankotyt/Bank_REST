@@ -10,9 +10,9 @@ import com.example.bankcards.entity.Role;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.GlobalExceptionHandler;
 import com.example.bankcards.exception.cards.CardOperationException;
-import com.example.bankcards.service.CardService;
-import com.example.bankcards.service.TransferService;
-import com.example.bankcards.service.UserService;
+import com.example.bankcards.service.card.CardServiceImpl;
+import com.example.bankcards.service.transfer.TransferServiceImpl;
+import com.example.bankcards.service.user.UserServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -51,11 +51,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest {
 
     @Mock
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
     @Mock
-    private CardService cardService;
+    private CardServiceImpl cardServiceImpl;
     @Mock
-    private TransferService transferService;
+    private TransferServiceImpl transferServiceImpl;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
@@ -67,7 +67,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        UserController controller = new UserController(userService, cardService, transferService);
+        UserController controller = new UserController(userServiceImpl, cardServiceImpl, transferServiceImpl);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -140,7 +140,7 @@ class UserControllerTest {
         PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("expiryDate").descending());
         Page<CardDTO> page = new PageImpl<>(List.of(testCard), pageRequest, 1);
 
-        when(cardService.getUserCards(eq(1L), isNull(), any(Pageable.class)))
+        when(cardServiceImpl.getUserCards(eq(1L), isNull(), any(Pageable.class)))
                 .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/user/cards")
@@ -159,7 +159,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
     void getCardBalance_ShouldReturnBalance() throws Exception {
-        when(cardService.getCardBalance(eq(1L), eq(testCardNumber)))
+        when(cardServiceImpl.getCardBalance(eq(1L), eq(testCardNumber)))
                 .thenReturn(BigDecimal.valueOf(1000));
 
         mockMvc.perform(get("/api/v1/user/cards/{cardNumber}/balance", testCardNumber))
@@ -170,12 +170,12 @@ class UserControllerTest {
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
     void blockCard_ShouldReturnOk() throws Exception {
-        doNothing().when(cardService).blockCard(eq(1L), eq(testCardNumber));
+        doNothing().when(cardServiceImpl).blockCard(eq(1L), eq(testCardNumber));
 
         mockMvc.perform(post("/api/v1/user/cards/{cardNumber}/block", testCardNumber))
                 .andExpect(status().isOk());
 
-        verify(cardService).blockCard(1L, testCardNumber);
+        verify(cardServiceImpl).blockCard(1L, testCardNumber);
     }
 
     @Test
@@ -192,7 +192,7 @@ class UserControllerTest {
                         CardStatus.ACTIVE)
         );
 
-        when(transferService.transferBetweenUserCards(
+        when(transferServiceImpl.transferBetweenUserCards(
                 eq(1L),
                 eq(testCardNumber),
                 eq(testToCardNumber),
@@ -210,7 +210,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
     void getUserProfile_ShouldReturnUserProfile() throws Exception {
-        when(userService.getUserProfile(eq(1L))).thenReturn(userDTO);
+        when(userServiceImpl.getUserProfile(eq(1L))).thenReturn(userDTO);
 
         mockMvc.perform(get("/api/v1/user/profile"))
                 .andExpect(status().isOk())
@@ -227,7 +227,7 @@ class UserControllerTest {
     void transferBetweenCards_ShouldReturnErrorWhenInsufficientFunds() throws Exception {
         TransferRequest request = new TransferRequest("1234", "5678", testAmount);
 
-        when(transferService.transferBetweenUserCards(any(), any(), any(), any()))
+        when(transferServiceImpl.transferBetweenUserCards(any(), any(), any(), any()))
                 .thenThrow(new CardOperationException("Not enough funds"));
 
         mockMvc.perform(post("/api/v1/user/transfer")

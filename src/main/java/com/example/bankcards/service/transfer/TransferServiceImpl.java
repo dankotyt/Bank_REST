@@ -1,4 +1,4 @@
-package com.example.bankcards.service;
+package com.example.bankcards.service.transfer;
 
 import com.example.bankcards.dto.cards.TransferResponse;
 import com.example.bankcards.entity.Card;
@@ -20,7 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class TransferService {
+public class TransferServiceImpl {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final Mapper mapper;

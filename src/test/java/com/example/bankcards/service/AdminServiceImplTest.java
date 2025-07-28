@@ -15,6 +15,7 @@ import com.example.bankcards.exception.users.UserExistsException;
 import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.service.admin.AdminServiceImpl;
 import com.example.bankcards.util.CardNumberGenerator;
 import com.example.bankcards.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AdminServiceTest {
+class AdminServiceImplTest {
 
     @Mock
     private CardRepository cardRepository;
@@ -54,7 +55,7 @@ class AdminServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private AdminService adminService;
+    private AdminServiceImpl adminServiceImpl;
 
     private User testUser;
     private Card testCard;
@@ -109,7 +110,7 @@ class AdminServiceTest {
         when(cardNumberGenerator.generateNumber()).thenReturn("1234567890123456");
         when(mapper.toCardDTO(any(Card.class))).thenReturn(cardDTO);
 
-        CardDTO result = adminService.createCard(1L);
+        CardDTO result = adminServiceImpl.createCard(1L);
 
         assertThat(result).isEqualTo(cardDTO);
         verify(cardRepository).save(any(Card.class));
@@ -120,7 +121,7 @@ class AdminServiceTest {
     void createCard_WhenUserNotFound_ShouldThrowException() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminService.createCard(1L))
+        assertThatThrownBy(() -> adminServiceImpl.createCard(1L))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -135,7 +136,7 @@ class AdminServiceTest {
                 .thenReturn(Optional.of(testCard));
         when(mapper.toCardDTO(testCard)).thenReturn(cardDTO);
 
-        CardDTO result = adminService.setActiveStatus(1L, cardNumber);
+        CardDTO result = adminServiceImpl.setActiveStatus(1L, cardNumber);
 
         assertThat(result).isEqualTo(cardDTO);
         assertThat(testCard.getStatus()).isEqualTo(CardStatus.ACTIVE);
@@ -151,7 +152,7 @@ class AdminServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedNumber, testUser))
                 .thenReturn(Optional.of(testCard));
 
-        assertThatThrownBy(() -> adminService.setActiveStatus(1L, cardNumber))
+        assertThatThrownBy(() -> adminServiceImpl.setActiveStatus(1L, cardNumber))
                 .isInstanceOf(CardOperationException.class)
                 .hasMessage("Card is active!");
     }
@@ -166,7 +167,7 @@ class AdminServiceTest {
                 .thenReturn(Optional.of(testCard));
         when(mapper.toCardDTO(testCard)).thenReturn(cardDTO);
 
-        CardDTO result = adminService.blockCard(1L, cardNumber);
+        CardDTO result = adminServiceImpl.blockCard(1L, cardNumber);
 
         assertThat(result).isEqualTo(cardDTO);
         assertThat(testCard.getStatus()).isEqualTo(CardStatus.BLOCKED);
@@ -182,7 +183,7 @@ class AdminServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedNumber, testUser))
                 .thenReturn(Optional.of(testCard));
 
-        assertThatThrownBy(() -> adminService.blockCard(1L, cardNumber))
+        assertThatThrownBy(() -> adminServiceImpl.blockCard(1L, cardNumber))
                 .isInstanceOf(CardOperationException.class)
                 .hasMessageContaining("Cannot deactivate card");
     }
@@ -196,7 +197,7 @@ class AdminServiceTest {
         when(cardRepository.findByCardNumberAndUser(formattedNumber, testUser))
                 .thenReturn(Optional.of(testCard));
 
-        adminService.deleteCard(1L, cardNumber);
+        adminServiceImpl.deleteCard(1L, cardNumber);
 
         verify(cardRepository).delete(testCard);
     }
@@ -217,7 +218,7 @@ class AdminServiceTest {
         when(mapper.toCardDTO(card1)).thenReturn(cardDTO1);
         when(mapper.toCardDTO(card2)).thenReturn(cardDTO2);
 
-        List<CardDTO> result = adminService.getAllCards();
+        List<CardDTO> result = adminServiceImpl.getAllCards();
 
         assertThat(result).hasSize(2);
         assertThat(result).containsExactly(cardDTO1, cardDTO2);
@@ -236,7 +237,7 @@ class AdminServiceTest {
                 .thenReturn(Optional.of(testCard));
         when(mapper.toCardDTO(testCard)).thenReturn(cardDTO);
 
-        CardDTO result = adminService.updateUserBalance(1L, cardNumber, newBalance);
+        CardDTO result = adminServiceImpl.updateUserBalance(1L, cardNumber, newBalance);
 
         assertThat(result).isEqualTo(cardDTO);
         assertThat(testCard.getBalance()).isEqualByComparingTo(newBalance);
@@ -248,7 +249,7 @@ class AdminServiceTest {
         when(cardRepository.findByUser(testUser)).thenReturn(List.of(testCard));
         when(mapper.toCardDTO(testCard)).thenReturn(cardDTO);
 
-        List<CardDTO> result = adminService.getUserCards(1L);
+        List<CardDTO> result = adminServiceImpl.getUserCards(1L);
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst()).isEqualTo(cardDTO);
@@ -260,7 +261,7 @@ class AdminServiceTest {
         when(userRepository.findAll()).thenReturn(List.of(testUser));
         when(mapper.toDTO(testUser)).thenReturn(userDTO);
 
-        List<UserDTO> result = adminService.getAllUsers();
+        List<UserDTO> result = adminServiceImpl.getAllUsers();
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst()).isEqualTo(userDTO);
@@ -271,7 +272,7 @@ class AdminServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(mapper.toDTO(testUser)).thenReturn(userDTO);
 
-        UserDTO result = adminService.getUserById(1L);
+        UserDTO result = adminServiceImpl.getUserById(1L);
 
         assertThat(result).isEqualTo(userDTO);
     }
@@ -282,7 +283,7 @@ class AdminServiceTest {
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
         when(mapper.toDTO(testUser)).thenReturn(userDTO);
 
-        UserDTO result = adminService.getUserByEmail(email);
+        UserDTO result = adminServiceImpl.getUserByEmail(email);
 
         assertThat(result).isEqualTo(userDTO);
         verify(userRepository).findByEmail(email);
@@ -293,7 +294,7 @@ class AdminServiceTest {
         String email = "nonexistent@example.com";
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminService.getUserByEmail(email))
+        assertThatThrownBy(() -> adminServiceImpl.getUserByEmail(email))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -303,7 +304,7 @@ class AdminServiceTest {
         when(userRepository.findByPhoneNumber(phone)).thenReturn(Optional.of(testUser));
         when(mapper.toDTO(testUser)).thenReturn(userDTO);
 
-        UserDTO result = adminService.getUserByPhone(phone);
+        UserDTO result = adminServiceImpl.getUserByPhone(phone);
 
         assertThat(result).isEqualTo(userDTO);
         verify(userRepository).findByPhoneNumber(phone);
@@ -314,7 +315,7 @@ class AdminServiceTest {
         String phone = "+0000000000";
         when(userRepository.findByPhoneNumber(phone)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminService.getUserByPhone(phone))
+        assertThatThrownBy(() -> adminServiceImpl.getUserByPhone(phone))
                 .isInstanceOf(UserNotFoundException.class);
     }
 
@@ -326,7 +327,7 @@ class AdminServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(mapper.toDTO(testUser)).thenReturn(userDTO);
 
-        UserDTO result = adminService.createUser(registerRequest);
+        UserDTO result = adminServiceImpl.createUser(registerRequest);
 
         assertThat(result).isEqualTo(userDTO);
         verify(userRepository).save(any(User.class));
@@ -337,7 +338,7 @@ class AdminServiceTest {
         when(userRepository.existsByEmailOrPhoneNumber("john@example.com", "+1234567890"))
                 .thenReturn(true);
 
-        assertThatThrownBy(() -> adminService.createUser(registerRequest))
+        assertThatThrownBy(() -> adminServiceImpl.createUser(registerRequest))
                 .isInstanceOf(UserExistsException.class);
     }
 
@@ -346,7 +347,7 @@ class AdminServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(mapper.toDTO(testUser)).thenReturn(userDTO);
 
-        UserDTO result = adminService.updateUser(1L, updateRequest);
+        UserDTO result = adminServiceImpl.updateUser(1L, updateRequest);
 
         assertThat(result).isEqualTo(userDTO);
         verify(userRepository).save(testUser);
@@ -359,7 +360,7 @@ class AdminServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.existsByEmail("new@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> adminService.updateUser(1L, updateRequest))
+        assertThatThrownBy(() -> adminServiceImpl.updateUser(1L, updateRequest))
                 .isInstanceOf(EmailBusyException.class);
     }
 
@@ -371,7 +372,7 @@ class AdminServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(mapper.toDTO(testUser)).thenReturn(userDTO);
 
-        UserDTO result = adminService.updateUser(1L, request);
+        UserDTO result = adminServiceImpl.updateUser(1L, request);
 
         assertThat(result).isEqualTo(userDTO);
         assertThat(testUser.getPatronymic()).isEqualTo("NewPatronymic");
@@ -386,7 +387,7 @@ class AdminServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.existsByEmail("+9876543210")).thenReturn(true);
 
-        assertThatThrownBy(() -> adminService.updateUser(1L, request))
+        assertThatThrownBy(() -> adminServiceImpl.updateUser(1L, request))
                 .isInstanceOf(PhoneNumberBusyException.class)
                 .hasMessageContaining("+9876543210");
 
@@ -409,7 +410,7 @@ class AdminServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(originalUser));
         when(mapper.toDTO(originalUser)).thenReturn(userDTO);
 
-        UserDTO result = adminService.updateUser(1L, request);
+        UserDTO result = adminServiceImpl.updateUser(1L, request);
 
         assertThat(result).isEqualTo(userDTO);
         assertThat(originalUser.getName()).isEqualTo("Original");
@@ -422,7 +423,7 @@ class AdminServiceTest {
     void deleteUser_ShouldDeleteUser() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-        adminService.deleteUser(1L);
+        adminServiceImpl.deleteUser(1L);
 
         verify(userRepository).delete(testUser);
     }

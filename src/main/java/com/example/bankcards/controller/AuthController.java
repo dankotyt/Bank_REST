@@ -5,13 +5,12 @@ import com.example.bankcards.dto.users.UserLoginResponse;
 import com.example.bankcards.dto.users.UserRegisterRequest;
 import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.security.CookieService;
-import com.example.bankcards.service.AuthService;
+import com.example.bankcards.service.auth.AuthServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "Authentication API", description = "Аутентификация и управление сессиями")
 public class AuthController {
-    private final AuthService authService;
+    private final AuthServiceImpl authServiceImpl;
     private final CookieService cookieService;
 
     @Operation(summary = "Регистрация", description = "Регистрирует нового пользователя в системе")
@@ -37,7 +36,7 @@ public class AuthController {
             @RequestBody UserRegisterRequest request,
             HttpServletResponse response) {
 
-        UserLoginResponse loginResponse = authService.register(request);
+        UserLoginResponse loginResponse = authServiceImpl.register(request);
         cookieService.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
         return ResponseEntity.ok(loginResponse);
     }
@@ -50,7 +49,7 @@ public class AuthController {
     public ResponseEntity<UserLoginResponse> loginUser(
             @RequestBody UserLoginRequest request,
             HttpServletResponse response) {
-        UserLoginResponse loginResponse = authService.login(request);
+        UserLoginResponse loginResponse = authServiceImpl.login(request);
         cookieService.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
         return ResponseEntity.ok(loginResponse);
     }
@@ -68,7 +67,7 @@ public class AuthController {
             throw new InvalidTokenException("Refresh token required");
         }
         try {
-            UserLoginResponse tokens = authService.refreshToken(refreshToken);
+            UserLoginResponse tokens = authServiceImpl.refreshToken(refreshToken);
 
             cookieService.setAccessTokenCookie(response, tokens.getAccessToken());
             cookieService.setRefreshTokenCookie(response, tokens.getRefreshToken());
@@ -88,7 +87,7 @@ public class AuthController {
             @CookieValue("__Host-refresh") String refreshToken,
             HttpServletResponse response) {
 
-        authService.logout(refreshToken);
+        authServiceImpl.logout(refreshToken);
         cookieService.expireAllCookies(response);
         return ResponseEntity.ok().build();
     }

@@ -9,6 +9,7 @@ import com.example.bankcards.exception.cards.CardNotFoundException;
 import com.example.bankcards.exception.cards.CardOperationException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.service.card.CardServiceImpl;
 import com.example.bankcards.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CardServiceTest {
+class CardServiceImplTest {
 
     @Mock
     private CardRepository cardRepository;
@@ -43,7 +44,7 @@ class CardServiceTest {
     @Mock
     private Mapper mapper;
     @InjectMocks
-    private CardService cardService;
+    private CardServiceImpl cardServiceImpl;
 
     private Long testUserId;
     private String testSearch;
@@ -85,7 +86,7 @@ class CardServiceTest {
                 .thenReturn(new PageImpl<>(List.of(testCard)));
         when(mapper.toCardDTO(testCard)).thenReturn(testCardDto);
 
-        Page<CardDTO> result = cardService.getUserCards(testUserId, testSearch, testPageable);
+        Page<CardDTO> result = cardServiceImpl.getUserCards(testUserId, testSearch, testPageable);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst()).isEqualTo(testCardDto);
@@ -97,7 +98,7 @@ class CardServiceTest {
         when(cardRepository.findAll(any(Specification.class), eq(testPageable)))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        cardService.getUserCards(testUserId, null, testPageable);
+        cardServiceImpl.getUserCards(testUserId, null, testPageable);
 
         verify(cardRepository).findAll(any(Specification.class), eq(testPageable));
     }
@@ -108,7 +109,7 @@ class CardServiceTest {
         when(cardRepository.findByCardNumberAndUser_UserId(testFullCardNumber, testUserId))
                 .thenReturn(Optional.of(testCard));
 
-        cardService.blockCard(testUserId, testCardNumber);
+        cardServiceImpl.blockCard(testUserId, testCardNumber);
 
         assertEquals(CardStatus.BLOCKED, testCard.getStatus());
         verify(cardRepository).save(testCard);
@@ -123,7 +124,7 @@ class CardServiceTest {
                 .thenReturn(Optional.of(testCard));
 
         assertThrows(CardOperationException.class,
-                () -> cardService.blockCard(testUserId, testCardNumber));
+                () -> cardServiceImpl.blockCard(testUserId, testCardNumber));
     }
 
     @Test
@@ -133,7 +134,7 @@ class CardServiceTest {
                 .thenReturn(Optional.empty());
 
         CardNotFoundException exception = assertThrows(CardNotFoundException.class,
-                () -> cardService.blockCard(testUserId, testCardNumber));
+                () -> cardServiceImpl.blockCard(testUserId, testCardNumber));
 
         String expectedMessage = "Card not found with number " + testFullCardNumber +
                 " for user with email " + testUser.getEmail();
@@ -146,7 +147,7 @@ class CardServiceTest {
         when(cardRepository.findByCardNumberAndUser_UserId(testFullCardNumber, testUserId))
                 .thenReturn(Optional.of(testCard));
 
-        BigDecimal balance = cardService.getCardBalance(testUserId, testCardNumber);
+        BigDecimal balance = cardServiceImpl.getCardBalance(testUserId, testCardNumber);
 
         assertEquals(new BigDecimal("1000.00"), balance);
     }
@@ -158,6 +159,6 @@ class CardServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(CardNotFoundException.class,
-                () -> cardService.getCardBalance(testUserId, testCardNumber));
+                () -> cardServiceImpl.getCardBalance(testUserId, testCardNumber));
     }
 }
