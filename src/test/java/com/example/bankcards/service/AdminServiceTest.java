@@ -17,7 +17,7 @@ import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.admin.AdminService;
 import com.example.bankcards.service.admin.AdminServiceImpl;
-import com.example.bankcards.util.CardNumberGenerator;
+import com.example.bankcards.util.generatorNumber.CardNumberGeneratorImpl;
 import com.example.bankcards.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class AdminServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private CardNumberGenerator cardNumberGenerator;
+    private CardNumberGeneratorImpl cardNumberGeneratorImpl;
 
     @Mock
     private Mapper mapper;
@@ -112,14 +112,14 @@ class AdminServiceTest {
     @Test
     void createCard_ShouldCreateNewCard() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(cardNumberGenerator.generateNumber()).thenReturn("1234567890123456");
+        when(cardNumberGeneratorImpl.generateNumber()).thenReturn("1234567890123456");
         when(mapper.toCardDTO(any(Card.class))).thenReturn(cardDTO);
 
         CardDTO result = adminService.createCard(1L);
 
         assertThat(result).isEqualTo(cardDTO);
         verify(cardRepository).save(any(Card.class));
-        verify(cardNumberGenerator).generateNumber();
+        verify(cardNumberGeneratorImpl).generateNumber();
     }
 
     @Test

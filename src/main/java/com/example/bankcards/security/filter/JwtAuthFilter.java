@@ -1,8 +1,10 @@
-package com.example.bankcards.security;
+package com.example.bankcards.security.filter;
 
 import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.security.parser.JwtParser;
+import com.example.bankcards.security.validator.JwtTokenValidator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -27,7 +29,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final String AUTH_TOKEN_COOKIE = "__Host-auth-token";
 
     private final UserRepository userRepository;
-    private final JwtService jwtService;
+    private final JwtParser jwtParser;
+    private final JwtTokenValidator jwtTokenValidator;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -48,11 +51,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (accessToken == null) {
                 throw new InvalidTokenException("Access token required!");
             }
-            String username = jwtService.extractUsername(accessToken);
+            String username = jwtParser.extractUsername(accessToken);
             var user = userRepository.findByEmail(username)
                     .orElseThrow(UserNotFoundException::new);
 
-            if (!jwtService.isTokenValid(accessToken, user)) {
+            if (!jwtTokenValidator.isTokenValid(accessToken, user)) {
                 throw new InvalidTokenException("Invalid access token!");
             }
 

@@ -9,7 +9,7 @@ import com.example.bankcards.exception.GlobalExceptionHandler;
 import com.example.bankcards.exception.auth.InvalidPasswordException;
 import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.exception.users.UserExistsException;
-import com.example.bankcards.security.CookieService;
+import com.example.bankcards.security.cookie.CookieServiceImpl;
 import com.example.bankcards.service.auth.AuthServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +39,7 @@ class AuthControllerTest {
     @Mock
     private AuthServiceImpl authServiceImpl;
     @Mock
-    private CookieService cookieService;
+    private CookieServiceImpl cookieServiceImpl;
 
     @InjectMocks
     private AuthController authController;
@@ -82,7 +82,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.access_token").value("access"))
                 .andExpect(jsonPath("$.refresh_token").value("refresh"));
 
-        verify(cookieService).setRefreshTokenCookie(any(), eq("refresh"));
+        verify(cookieServiceImpl).setRefreshTokenCookie(any(), eq("refresh"));
     }
 
     @Test
@@ -102,7 +102,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.refresh_token").value("refresh-token"))
                 .andExpect(jsonPath("$.user").value(testUserDTO));
 
-        verify(cookieService).setRefreshTokenCookie(any(), eq("refresh-token"));
+        verify(cookieServiceImpl).setRefreshTokenCookie(any(), eq("refresh-token"));
     }
 
     @Test
@@ -120,8 +120,8 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.access_token").value("new-access"))
                 .andExpect(jsonPath("$.refresh_token").value("new-refresh"));
 
-        verify(cookieService).setAccessTokenCookie(any(), eq("new-access"));
-        verify(cookieService).setRefreshTokenCookie(any(), eq("new-refresh"));
+        verify(cookieServiceImpl).setAccessTokenCookie(any(), eq("new-access"));
+        verify(cookieServiceImpl).setRefreshTokenCookie(any(), eq("new-refresh"));
     }
 
     @Test
@@ -157,7 +157,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk());
 
         verify(authServiceImpl).logout(refreshToken);
-        verify(cookieService).expireAllCookies(any());
+        verify(cookieServiceImpl).expireAllCookies(any());
     }
 
     @Test
@@ -166,7 +166,7 @@ class AuthControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(authServiceImpl);
-        verifyNoInteractions(cookieService);
+        verifyNoInteractions(cookieServiceImpl);
     }
 
     @Test

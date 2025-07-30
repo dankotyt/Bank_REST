@@ -1,17 +1,13 @@
 package com.example.bankcards.config;
 
-import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.security.JwtTokenFactory;
-import io.jsonwebtoken.security.Keys;
+import com.example.bankcards.security.factory.JwtTokenFactoryImpl;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -29,8 +25,8 @@ public class JwtConfig {
     private long refreshTtl;
 
     @Bean
-    public JwtTokenFactory jwtTokenFactory(SecretKey secretKey) {
-        return new JwtTokenFactory(secretKey, accessTtl, refreshTtl);
+    public JwtTokenFactoryImpl jwtTokenFactory(SecretKey secretKey) {
+        return new JwtTokenFactoryImpl(secretKey, accessTtl, refreshTtl);
     }
 
     @Bean

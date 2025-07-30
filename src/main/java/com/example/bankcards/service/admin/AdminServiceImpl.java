@@ -16,7 +16,7 @@ import com.example.bankcards.exception.users.UserExistsException;
 import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.util.CardNumberGenerator;
+import com.example.bankcards.util.generatorNumber.CardNumberGeneratorImpl;
 import com.example.bankcards.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * <p>
  * Особенности реализации:
  * <ul>
- *   <li>Автоматически генерирует номера карт через {@link CardNumberGenerator}</li>
+ *   <li>Автоматически генерирует номера карт через {@link CardNumberGeneratorImpl}</li>
  *   <li>Форматирует номера карт (**** **** **** XXXX) при поиске</li>
  *   <li>Устанавливает срок действия карт на 5 лет вперед</li>
  * </ul>
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 public class AdminServiceImpl implements AdminService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
-    private final CardNumberGenerator cardNumberGenerator;
+    private final CardNumberGeneratorImpl cardNumberGeneratorImpl;
     private final Mapper mapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -81,7 +81,7 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(UserNotFoundException::new);
         Card card = new Card();
         card.setCardHolder(user.getName() + " " + user.getSurname());
-        card.setCardNumber(cardNumberGenerator.generateNumber());
+        card.setCardNumber(cardNumberGeneratorImpl.generateNumber());
         card.setExpiryDate(LocalDate.now().plusYears(5));
         card.setStatus(CardStatus.ACTIVE);
         card.setUser(user);

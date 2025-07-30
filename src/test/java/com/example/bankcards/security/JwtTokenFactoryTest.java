@@ -1,6 +1,7 @@
 package com.example.bankcards.security;
 
 import com.example.bankcards.entity.User;
+import com.example.bankcards.security.factory.JwtTokenFactoryImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -19,7 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @ExtendWith(MockitoExtension.class)
 class JwtTokenFactoryTest {
 
-    private JwtTokenFactory jwtTokenFactory;
+    private JwtTokenFactoryImpl jwtTokenFactory;
     private SecretKey secretKey;
     private User testUser;
 
@@ -32,7 +33,7 @@ class JwtTokenFactoryTest {
         long refreshTtl = 86400000;
         // 1 hour
         long accessTtl = 3600000;
-        jwtTokenFactory = new JwtTokenFactory(secretKey, accessTtl, refreshTtl);
+        jwtTokenFactory = new JwtTokenFactoryImpl(secretKey, accessTtl, refreshTtl);
 
         testUser = User.builder()
                 .userId(1L)

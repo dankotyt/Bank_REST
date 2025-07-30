@@ -4,7 +4,7 @@ import com.example.bankcards.dto.users.UserLoginRequest;
 import com.example.bankcards.dto.users.UserLoginResponse;
 import com.example.bankcards.dto.users.UserRegisterRequest;
 import com.example.bankcards.exception.auth.InvalidTokenException;
-import com.example.bankcards.security.CookieService;
+import com.example.bankcards.security.cookie.CookieServiceImpl;
 import com.example.bankcards.service.auth.AuthServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication API", description = "Аутентификация и управление сессиями")
 public class AuthController {
     private final AuthServiceImpl authServiceImpl;
-    private final CookieService cookieService;
+    private final CookieServiceImpl cookieServiceImpl;
 
     @Operation(summary = "Регистрация", description = "Регистрирует нового пользователя в системе")
     @ApiResponse(responseCode = "200", description = "Успешная регистрация",
@@ -37,7 +37,7 @@ public class AuthController {
             HttpServletResponse response) {
 
         UserLoginResponse loginResponse = authServiceImpl.register(request);
-        cookieService.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
+        cookieServiceImpl.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -50,7 +50,7 @@ public class AuthController {
             @RequestBody UserLoginRequest request,
             HttpServletResponse response) {
         UserLoginResponse loginResponse = authServiceImpl.login(request);
-        cookieService.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
+        cookieServiceImpl.setRefreshTokenCookie(response, loginResponse.getRefreshToken());
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -63,18 +63,18 @@ public class AuthController {
             @CookieValue(value = "__Host-refresh", required = false) String refreshToken,
             HttpServletResponse response) {
         if (refreshToken == null) {
-            cookieService.expireAllCookies(response);
+            cookieServiceImpl.expireAllCookies(response);
             throw new InvalidTokenException("Refresh token required");
         }
         try {
             UserLoginResponse tokens = authServiceImpl.refreshToken(refreshToken);
 
-            cookieService.setAccessTokenCookie(response, tokens.getAccessToken());
-            cookieService.setRefreshTokenCookie(response, tokens.getRefreshToken());
+            cookieServiceImpl.setAccessTokenCookie(response, tokens.getAccessToken());
+            cookieServiceImpl.setRefreshTokenCookie(response, tokens.getRefreshToken());
 
             return ResponseEntity.ok(tokens);
         } catch (InvalidTokenException e) {
-            cookieService.expireAllCookies(response);
+            cookieServiceImpl.expireAllCookies(response);
             throw e;
         }
     }
@@ -88,7 +88,7 @@ public class AuthController {
             HttpServletResponse response) {
 
         authServiceImpl.logout(refreshToken);
-        cookieService.expireAllCookies(response);
+        cookieServiceImpl.expireAllCookies(response);
         return ResponseEntity.ok().build();
     }
 }

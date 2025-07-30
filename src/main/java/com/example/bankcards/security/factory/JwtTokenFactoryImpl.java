@@ -1,4 +1,4 @@
-package com.example.bankcards.security;
+package com.example.bankcards.security.factory;
 
 import com.example.bankcards.entity.User;
 import io.jsonwebtoken.Jwts;
@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class JwtTokenFactory {
+public class JwtTokenFactoryImpl implements JwtTokenFactory {
     private final SecretKey secretKey;
     private final long accessTtl;
     private final long refreshTtl;

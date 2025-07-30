@@ -1,6 +1,7 @@
 package com.example.bankcards.security;
 
 import com.example.bankcards.config.JwtConfig;
+import com.example.bankcards.security.cookie.CookieServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +27,7 @@ class CookieServiceTest {
     private HttpServletResponse response;
 
     @InjectMocks
-    private CookieService cookieService;
+    private CookieServiceImpl cookieServiceImpl;
 
     private final String testToken = "test.token.value";
     private final long testTtl = 3600000; // 1 hour in ms
@@ -35,7 +36,7 @@ class CookieServiceTest {
     void setAccessTokenCookie_ShouldSetCorrectCookie() {
         when(jwtConfig.getAccessTtl()).thenReturn(testTtl);
 
-        cookieService.setAccessTokenCookie(response, testToken);
+        cookieServiceImpl.setAccessTokenCookie(response, testToken);
 
         ArgumentCaptor<String> headerCaptor = ArgumentCaptor.forClass(String.class);
         verify(response).addHeader(eq(HttpHeaders.SET_COOKIE), headerCaptor.capture());
@@ -54,7 +55,7 @@ class CookieServiceTest {
     void setRefreshTokenCookie_ShouldSetCorrectCookie() {
         when(jwtConfig.getRefreshTtl()).thenReturn(testTtl);
 
-        cookieService.setRefreshTokenCookie(response, testToken);
+        cookieServiceImpl.setRefreshTokenCookie(response, testToken);
 
         ArgumentCaptor<String> headerCaptor = ArgumentCaptor.forClass(String.class);
         verify(response).addHeader(eq(HttpHeaders.SET_COOKIE), headerCaptor.capture());
@@ -71,7 +72,7 @@ class CookieServiceTest {
 
     @Test
     void expireAllCookies_ShouldExpireBothCookies() {
-        cookieService.expireAllCookies(response);
+        cookieServiceImpl.expireAllCookies(response);
 
         verify(response, times(2)).addHeader(eq(HttpHeaders.SET_COOKIE), anyString());
 

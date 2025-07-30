@@ -1,4 +1,4 @@
-package com.example.bankcards.security;
+package com.example.bankcards.security.cookie;
 
 import com.example.bankcards.config.JwtConfig;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,9 +11,10 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CookieService {
+public class CookieServiceImpl implements CookieService {
     private final JwtConfig jwtConfig;
 
+    @Override
     public void setAccessTokenCookie(HttpServletResponse response, String accessToken) {
         ResponseCookie cookie = ResponseCookie.from("__Host-auth-token", accessToken)
                 .httpOnly(true)
@@ -25,6 +26,7 @@ public class CookieService {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
+    @Override
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         log.info("Setting refresh token cookie: {}", refreshToken);
         ResponseCookie cookie = ResponseCookie.from("__Host-refresh", refreshToken)
@@ -37,12 +39,14 @@ public class CookieService {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
+    @Override
     public void expireAllCookies(HttpServletResponse response) {
         expireCookie(response, "__Host-auth-token");
         expireCookie(response, "__Host-refresh");
     }
 
-    private void expireCookie(HttpServletResponse response, String name) {
+    @Override
+    public void expireCookie(HttpServletResponse response, String name) {
         ResponseCookie cookie = ResponseCookie.from(name, "")
                 .maxAge(0)
                 .path("/")

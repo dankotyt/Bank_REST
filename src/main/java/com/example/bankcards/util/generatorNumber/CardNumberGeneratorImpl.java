@@ -1,22 +1,19 @@
-package com.example.bankcards.util;
+package com.example.bankcards.util.generatorNumber;
 
-import com.example.bankcards.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class CardNumberGenerator {
+public class CardNumberGeneratorImpl implements CardNumberGenerator {
     private static final String BIN = "220220";
     //private final EncryptionCard encryptionCard;
 
-    //для генерации пачки номеров карт (доп. фича для админа вне задания)
-    public List<String> generateBatch() {
-        int batchSize = 100;
+    @Override
+    public List<String> generateBatch(int batchSize) {
         List<String> cardNumbers = new ArrayList<>();
         while (cardNumbers.size() < batchSize) {
             String number = generateNumber();
@@ -33,6 +30,7 @@ public class CardNumberGenerator {
 //                .collect(Collectors.toList());
     }
 
+    @Override
     public String generateNumber() {
         Random random = ThreadLocalRandom.current();
         StringBuilder number = new StringBuilder(BIN);
@@ -46,7 +44,7 @@ public class CardNumberGenerator {
         return maskCardNumber(partialNumber + checkDigit);
     }
 
-    protected int checkDigit(String number) {
+    int checkDigit(String number) {
         int sum = 0;
         boolean checker = false;
 
@@ -64,7 +62,7 @@ public class CardNumberGenerator {
         return (10 - (sum % 10)) % 10;
     }
 
-    protected String maskCardNumber(String cardNumber) {
+    String maskCardNumber(String cardNumber) {
         if (cardNumber.length() == 16) {
             return "**** **** **** " + cardNumber.substring(cardNumber.length() - 4);
         }

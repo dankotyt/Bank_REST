@@ -9,7 +9,10 @@ import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.exception.users.UserExistsException;
 import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.security.JwtService;
+import com.example.bankcards.security.parser.JwtParser;
+import com.example.bankcards.security.service.JwtService;
+import com.example.bankcards.security.service.JwtServiceImpl;
+import com.example.bankcards.security.validator.JwtTokenValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,7 +25,7 @@ import java.time.LocalDateTime;
  * Особенности реализации:
  * <ul>
  *   <li>Использует {@link PasswordEncoder} для безопасного хранения паролей</li>
- *   <li>Генерирует JWT токены через {@link JwtService}</li>
+ *   <li>Генерирует JWT токены через {@link JwtServiceImpl}</li>
  *   <li>Автоматически устанавливает дату создания при регистрации</li>
  * </ul>
  */
@@ -32,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final JwtParser jwtParser;
+    private final JwtTokenValidator jwtTokenValidator;
 
     /**
      * {@inheritDoc}
@@ -81,7 +86,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.findByRefreshToken(refreshToken)
                 .ifPresent(user -> {
                     String accessToken = jwtService.extractAccessTokenFromRequest();
-                    if (accessToken != null) jwtService.revokeToken(accessToken);
+                    if (accessToken != null) jwtTokenValidator.revokeToken(accessToken);
                     user.setRefreshToken(null);
                     userRepository.save(user);
                 });
@@ -103,11 +108,11 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidTokenException("Refresh token is empty!");
         }
 
-        if (jwtService.isTokenRevoked(refreshToken)) {
+        if (jwtTokenValidator.isTokenRevoked(refreshToken)) {
             throw new InvalidTokenException("Token revoked");
         }
 
-        String email = jwtService.extractUsername(refreshToken);
+        String email = jwtParser.extractUsername(refreshToken);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -115,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidTokenException("Discrepancy of refresh token!");
         }
 
-        if (!jwtService.isTokenValid(refreshToken, user)) {
+        if (!jwtTokenValidator.isTokenValid(refreshToken, user)) {
             if (user.getRefreshTokenExpiry() != null &&
                     user.getRefreshTokenExpiry().isBefore(LocalDateTime.now())) {
                 throw new InvalidTokenException("The refresh token is expired!");
@@ -123,7 +128,7 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidTokenException("Refresh token is invalid!");
         }
         UserLoginResponse tokens = jwtService.generateTokenPair(user);
-        jwtService.revokeToken(refreshToken);
+        jwtTokenValidator.revokeToken(refreshToken);
         return tokens;
     }
 }

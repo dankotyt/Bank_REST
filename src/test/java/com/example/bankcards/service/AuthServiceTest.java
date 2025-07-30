@@ -11,7 +11,10 @@ import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.exception.auth.InvalidPasswordException;
 import com.example.bankcards.exception.auth.InvalidTokenException;
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.security.JwtService;
+import com.example.bankcards.security.parser.JwtParser;
+import com.example.bankcards.security.service.JwtService;
+import com.example.bankcards.security.service.JwtServiceImpl;
+import com.example.bankcards.security.validator.JwtTokenValidator;
 import com.example.bankcards.service.auth.AuthService;
 import com.example.bankcards.service.auth.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,10 +46,17 @@ class AuthServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private JwtParser jwtParser;
+
+    @Mock
+    private JwtTokenValidator jwtTokenValidator;
+
     @InjectMocks
     private AuthServiceImpl authServiceImpl;
 
     private AuthService authService;
+
 
     private User testUser;
     private UserDTO testUserDTO;
@@ -162,7 +172,7 @@ class AuthServiceTest {
 
         authService.logout(refreshToken);
 
-        verify(jwtService).revokeToken("access-token");
+        verify(jwtTokenValidator).revokeToken("access-token");
         verify(userRepository).save(testUser);
         assertThat(testUser.getRefreshToken()).isNull();
     }
@@ -188,9 +198,9 @@ class AuthServiceTest {
         testUser.setRefreshToken(refreshToken);
         testUser.setRefreshTokenExpiry(now.plusDays(1));
 
-        when(jwtService.extractUsername(refreshToken)).thenReturn("john@example.com");
+        when(jwtParser.extractUsername(refreshToken)).thenReturn("john@example.com");
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(testUser));
-        when(jwtService.isTokenValid(refreshToken, testUser)).thenReturn(true);
+        when(jwtTokenValidator.isTokenValid(refreshToken, testUser)).thenReturn(true);
         when(jwtService.generateTokenPair(testUser)).thenReturn(expectedResponse);
 
         UserLoginResponse result = authService.refreshToken(refreshToken);
@@ -210,7 +220,7 @@ class AuthServiceTest {
     @Test
     void refreshToken_WithRevokedToken_ShouldThrowException() {
         String refreshToken = "revoked-token";
-        when(jwtService.isTokenRevoked(refreshToken)).thenReturn(true);
+        when(jwtTokenValidator.isTokenRevoked(refreshToken)).thenReturn(true);
 
         assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)
@@ -222,9 +232,9 @@ class AuthServiceTest {
         String refreshToken = "wrong-token";
         testUser.setRefreshToken("different-token");
 
-        when(jwtService.extractUsername(refreshToken)).thenReturn("john@example.com");
+        when(jwtParser.extractUsername(refreshToken)).thenReturn("john@example.com");
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(testUser));
-        when(jwtService.isTokenRevoked(refreshToken)).thenReturn(false);
+        when(jwtTokenValidator.isTokenRevoked(refreshToken)).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)
@@ -237,10 +247,10 @@ class AuthServiceTest {
         testUser.setRefreshToken(refreshToken);
         testUser.setRefreshTokenExpiry(LocalDateTime.now().minusDays(1));
 
-        when(jwtService.extractUsername(refreshToken)).thenReturn("john@example.com");
+        when(jwtParser.extractUsername(refreshToken)).thenReturn("john@example.com");
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(testUser));
-        when(jwtService.isTokenRevoked(refreshToken)).thenReturn(false);
-        when(jwtService.isTokenValid(refreshToken, testUser)).thenReturn(false);
+        when(jwtTokenValidator.isTokenRevoked(refreshToken)).thenReturn(false);
+        when(jwtTokenValidator.isTokenValid(refreshToken, testUser)).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)
@@ -253,10 +263,10 @@ class AuthServiceTest {
         testUser.setRefreshToken(refreshToken);
         testUser.setRefreshTokenExpiry(LocalDateTime.now().plusDays(1));
 
-        when(jwtService.extractUsername(refreshToken)).thenReturn("john@example.com");
+        when(jwtParser.extractUsername(refreshToken)).thenReturn("john@example.com");
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(testUser));
-        when(jwtService.isTokenRevoked(refreshToken)).thenReturn(false);
-        when(jwtService.isTokenValid(refreshToken, testUser)).thenReturn(false);
+        when(jwtTokenValidator.isTokenRevoked(refreshToken)).thenReturn(false);
+        when(jwtTokenValidator.isTokenValid(refreshToken, testUser)).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshToken(refreshToken))
                 .isInstanceOf(InvalidTokenException.class)

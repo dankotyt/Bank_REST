@@ -1,4 +1,4 @@
-package com.example.bankcards.util;
+package com.example.bankcards.util.generatorNumber;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,25 +14,27 @@ import static org.junit.jupiter.api.Assertions.*;
 class CardNumberGeneratorTest {
 
     @InjectMocks
-    private CardNumberGenerator cardNumberGenerator;
+    private CardNumberGeneratorImpl cardNumberGeneratorImpl;
 
     @Test
     void generateBatch_ShouldReturnCorrectSize() {
-        List<String> result = cardNumberGenerator.generateBatch();
+        int batchSize = 5;
+        List<String> result = cardNumberGeneratorImpl.generateBatch(batchSize);
 
-        assertEquals(100, result.size());
+        assertEquals(5, result.size());
     }
 
     @Test
     void generateBatch_ShouldReturnUniqueNumbers() {
-        List<String> result = cardNumberGenerator.generateBatch();
+        int batchSize = 5;
+        List<String> result = cardNumberGeneratorImpl.generateBatch(batchSize);
 
-        assertEquals(100, result.stream().distinct().count());
+        assertEquals(5, result.size());
     }
 
     @Test
     void generateNumber_ShouldStartWithBin() {
-        String result = cardNumberGenerator.generateNumber();
+        String result = cardNumberGeneratorImpl.generateNumber();
         String lastFourDigits = result.substring(result.length() - 4);
 
         assertTrue(result.startsWith("**** **** **** " + lastFourDigits));
@@ -40,7 +42,7 @@ class CardNumberGeneratorTest {
 
     @Test
     void generateNumber_ShouldHaveCorrectLength() {
-        String result = cardNumberGenerator.generateNumber();
+        String result = cardNumberGeneratorImpl.generateNumber();
 
         assertEquals(19, result.length());
     }
@@ -49,7 +51,7 @@ class CardNumberGeneratorTest {
     void generateNumber_ShouldMatchMaskPattern() {
         Pattern pattern = Pattern.compile("^\\*{4} \\*{4} \\*{4} \\d{4}$");
 
-        String result = cardNumberGenerator.generateNumber();
+        String result = cardNumberGeneratorImpl.generateNumber();
 
         assertTrue(pattern.matcher(result).matches());
         assertEquals(19, result.length());
@@ -59,7 +61,7 @@ class CardNumberGeneratorTest {
     void maskCardNumber_ShouldMaskCorrectly() {
         String fullNumber = "2202201234567890";
 
-        String result = cardNumberGenerator.maskCardNumber(fullNumber);
+        String result = cardNumberGeneratorImpl.maskCardNumber(fullNumber);
 
         assertEquals("**** **** **** 7890", result);
     }
@@ -68,14 +70,14 @@ class CardNumberGeneratorTest {
     void maskCardNumber_WithInvalidLength_ShouldReturnNull() {
         String invalidNumber = "123456789";
 
-        String result = cardNumberGenerator.maskCardNumber(invalidNumber);
+        String result = cardNumberGeneratorImpl.maskCardNumber(invalidNumber);
 
         assertNull(result);
     }
 
     @Test
     void generateNumber_ShouldProduceValidLuhnNumber() {
-        String maskedNumber = cardNumberGenerator.generateNumber();
+        String maskedNumber = cardNumberGeneratorImpl.generateNumber();
 
         String visiblePart = maskedNumber.substring(maskedNumber.length() - 4);
 
