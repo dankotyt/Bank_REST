@@ -1,4 +1,4 @@
-package com.example.bankcards.service.transfer;
+package com.example.bankcards.service.transfers;
 
 import com.example.bankcards.dto.cards.TransferResponse;
 import com.example.bankcards.entity.Card;
