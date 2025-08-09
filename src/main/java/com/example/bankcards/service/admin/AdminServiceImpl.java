@@ -16,6 +16,7 @@ import com.example.bankcards.exception.users.UserNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.Mapper;
+import com.example.bankcards.util.generatorNumbers.CardNumberGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
