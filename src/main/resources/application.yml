@@ -1,8 +1,26 @@
-#
-# application.yml — главный конфигурационный файл Spring Boot.
+jwt:
+  secret: ${JWT_SECRET}
+  access-ttl: ${JWT_ACCESS_TTL}
+  refresh-ttl: ${JWT_REFRESH_TTL}
 
-Что нужно сделать:
-  - Указать настройки подключения к базе данных.
-  - Указать порт приложения.
-  - Настроить параметры безопасности и JWT.
-  - Включить Swagger UI.
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/bank_system_db?currentSchema=public
+    username: ${USER_LOGIN}
+    password: ${USER_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update #validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
