@@ -14,4 +14,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findById(Long id);
     boolean existsByEmail(@NotNull(message = "The field couldn`t be empty!") @Email(message = "Incorrect email!")
                           String email);
+    Optional<User> findByRefreshToken(String token);
 }
