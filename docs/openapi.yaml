@@ -1,1 +1,892 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.4
+info:
+  title: Bank REST API
+  description: API для управления банковскими картами и пользователями
+  contact:
+    email: danilkotlarov1@gmail.com
+  version: 0.0.1
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+tags:
+  - name: Authentication API
+    description: Аутентификация и управление сессиями
+  - name: Admin API
+    description: Операции для администраторов
+  - name: User API
+    description: Операции для авторизованных пользователей
+paths:
+  # Authentication API
+  /api/v1/auth/register:
+    post:
+      tags:
+        - Authentication API
+      summary: Регистрация
+      description: Регистрирует нового пользователя в системе
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication API
+      summary: Вход в систему
+      description: Аутентифицирует пользователя и возвращает токены
+      operationId: loginUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '401':
+          description: Неверные учетные данные
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+  /api/v1/auth/refresh:
+    post:
+      tags:
+        - Authentication API
+      summary: Обновление токена
+      description: Обновляет access token по refresh token
+      operationId: refresh
+      parameters:
+        - name: __Host-refresh
+          in: cookie
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Токены обновлены
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '401':
+          description: Недействительный refresh token
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Authentication API
+      summary: Выход из системы
+      description: Завершает сеанс пользователя
+      operationId: logout
+      parameters:
+        - name: __Host-refresh
+          in: cookie
+          description: Refresh token из cookies
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный выход
+
+  # Admin API
+  /api/v1/admin/users/create:
+    post:
+      tags:
+        - Admin API
+      summary: Создать пользователя
+      description: Регистрирует нового пользователя в системе
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+        required: true
+      responses:
+        '200':
+          description: Пользователь создан
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/users/get_by_user_id/{userId}:
+    get:
+      tags:
+        - Admin API
+      summary: Получить пользователя по ID
+      description: Возвращает данные пользователя по его идентификатору
+      operationId: getUserById
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/users/get_by_email/{email}:
+    get:
+      tags:
+        - Admin API
+      summary: Получить пользователя по email
+      description: Возвращает данные пользователя по его email
+      operationId: getUserByEmail
+      parameters:
+        - name: email
+          in: path
+          description: Email пользователя
+          required: true
+          schema:
+            type: string
+          example: 'user@example.com'
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/users/get_all_info:
+    get:
+      tags:
+        - Admin API
+      summary: Получить всех пользователей
+      description: Возвращает список всех пользователей системы
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/users/update/{userId}:
+    patch:
+      tags:
+        - Admin API
+      summary: Обновить пользователя
+      description: Обновляет данные указанного пользователя
+      operationId: updateUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        '200':
+          description: Данные обновлены
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/users/delete/{userId}:
+    delete:
+      tags:
+        - Admin API
+      summary: Удалить пользователя
+      description: Удаляет пользователя из системы
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '204':
+          description: Пользователь удален
+      security:
+        - bearerAuth: []
+  /api/v1/admin/cards/create:
+    post:
+      tags:
+        - Admin API
+      summary: Создать карту
+      description: Создает новую карту для указанного пользователя
+      operationId: createCard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCardRequest'
+        required: true
+      responses:
+        '200':
+          description: Карта успешно создана
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/cards/set_balance:
+    post:
+      tags:
+        - Admin API
+      summary: Установить баланс
+      description: Изменяет баланс указанной карты
+      operationId: setBalance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardReplenishmentRequest'
+        required: true
+      responses:
+        '200':
+          description: Баланс обновлен
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/cards/block:
+    post:
+      tags:
+        - Admin API
+      summary: Заблокировать карту
+      description: Блокирует указанную карту пользователя
+      operationId: blockCardByAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCardOperationRequest'
+      responses:
+        '200':
+          description: Карта заблокирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Карта или пользователь не найдены
+      security:
+        - bearerAuth: []
+  /api/v1/admin/cards/activate:
+    post:
+      tags:
+        - Admin API
+      summary: Активировать карту
+      description: Активирует указанную карту пользователя
+      operationId: activateCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCardOperationRequest'
+      responses:
+        '200':
+          description: Карта активирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Карта или пользователь не найдены
+      security:
+        - bearerAuth: []
+  /api/v1/admin/cards/get_by_user_id/{userId}:
+    get:
+      tags:
+        - Admin API
+      summary: Получить карты пользователя
+      description: Возвращает все карты указанного пользователя
+      operationId: getUserCards_1
+      parameters:
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 1
+      responses:
+        '200':
+          description: Список карт пользователя
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/cards/get_all_info:
+    get:
+      tags:
+        - Admin API
+      summary: Получить все карты
+      description: Возвращает список всех карт в системе
+      operationId: getAllCards
+      responses:
+        '200':
+          description: Список карт
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/admin/cards/delete/{cardNumber}/user/{userId}:
+    delete:
+      tags:
+        - Admin API
+      summary: Удалить карту
+      description: Удаляет указанную карту пользователя по ID пользователя и последним 4 цифрам карты
+      operationId: deleteCardByAdmin
+      parameters:
+        - name: cardNumber
+          in: path
+          description: Последние 4 цифры номера карты
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}$'
+            example: "7890"
+        - name: userId
+          in: path
+          description: ID пользователя
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '204':
+          description: Карта успешно удалена
+        '400':
+          description: Неверный формат параметров
+        '404':
+          description: Карта или пользователь не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+
+  # User API
+  /api/v1/user/profile:
+    get:
+      tags:
+        - User API
+      summary: Получить профиль
+      description: Возвращает данные текущего пользователя
+      operationId: getUserProfile
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+      security:
+        - bearerAuth: []
+  /api/v1/user/cards:
+    get:
+      tags:
+        - User API
+      summary: Получить карты
+      description: Возвращает список карт текущего пользователя с пагинацией
+      operationId: getUserCards
+      parameters:
+        - name: search
+          in: query
+          description: Поисковый запрос (опционально)
+          required: false
+          schema:
+            type: string
+        - name: pageable
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Pageable'
+      responses:
+        '200':
+          description: Список карт
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Page'
+      security:
+        - bearerAuth: []
+  /api/v1/user/cards/{cardNumber}/balance:
+    get:
+      tags:
+        - User API
+      summary: Получить баланс карты
+      description: Возвращает баланс указанной карты пользователя
+      operationId: getCardBalance
+      parameters:
+        - name: cardNumber
+          in: path
+          description: Последние 4 цифры номера карты
+          required: true
+          schema:
+            type: string
+          example: '7890'
+      responses:
+        '200':
+          description: Текущий баланс
+          content:
+            '*/*':
+              schema:
+                type: number
+      security:
+        - bearerAuth: []
+  /api/v1/user/cards/{cardNumber}/block:
+    post:
+      tags:
+        - User API
+      summary: Блокировка карты
+      description: Блокирует указанную карту пользователя
+      operationId: blockCardByUser
+      parameters:
+        - name: cardNumber
+          in: path
+          description: Последние 4 цифры номера карты
+          required: true
+          schema:
+            type: string
+          example: '7890'
+      responses:
+        '200':
+          description: Карта заблокирована
+      security:
+        - bearerAuth: []
+  /api/v1/user/transfer:
+    post:
+      tags:
+        - User API
+      summary: Перевод средств
+      description: Выполняет перевод между картами текущего пользователя
+      operationId: transferBetweenCards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+        required: true
+      responses:
+        '200':
+          description: Перевод выполнен
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          description: Недостаточно средств или другие ошибки
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    TransferRequest:
+      type: object
+      description: Запрос на перевод средств между картами
+      properties:
+        fromCardNumber:
+          type: string
+          description: Последние 4 цифры карты отправителя
+          example: '1234'
+          maxLength: 4
+          minLength: 4
+        toCardNumber:
+          type: string
+          description: Последние 4 цифры карты получателя
+          example: '5678'
+          maxLength: 4
+          minLength: 4
+        amount:
+          type: number
+          description: Сумма перевода (больше 0)
+          example: 100.5
+          minimum: 0.01
+      required:
+        - amount
+        - fromCardNumber
+        - toCardNumber
+    CardDTO:
+      type: object
+      description: Данные банковской карты
+      properties:
+        cardNumber:
+          type: string
+          description: Номер карты
+          example: '**** **** **** 7890'
+        expiryDate:
+          type: string
+          format: date
+          description: Дата окончания действия (ГГГГ-ММ-ДД)
+          example: '2025-12-31'
+        cardHolder:
+          type: string
+          description: Имя держателя карты
+          example: IVAN IVANOV
+        balance:
+          type: number
+          description: Текущий баланс
+          example: 1500.75
+        status:
+          type: string
+          description: Статус карты
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+          example: ACTIVE
+    TransferResponse:
+      type: object
+      description: Ответ на запрос перевода средств
+      properties:
+        fromCard:
+          allOf:
+            - $ref: '#/components/schemas/CardDTO'
+            - description: Данные карты отправителя
+        toCard:
+          allOf:
+            - $ref: '#/components/schemas/CardDTO'
+            - description: Данные карты получателя
+    UserRegisterRequest:
+      type: object
+      description: Запрос на регистрацию пользователя
+      properties:
+        name:
+          type: string
+          description: Имя
+          example: Иван
+        surname:
+          type: string
+          description: Фамилия
+          example: Иванов
+        patronymic:
+          type: string
+          description: Отчество (опционально)
+          example: Иванович
+        birthday:
+          type: string
+          format: date
+          description: Дата рождения (ГГГГ-ММ-ДД)
+          example: '1990-01-01'
+        email:
+          type: string
+          description: Email
+          example: user@example.com
+        password:
+          type: string
+          description: Пароль (8-64 символов)
+          example: securePassword123!
+          maxLength: 64
+          minLength: 8
+        role:
+          type: string
+          description: Роль пользователя
+          enum:
+            - USER
+            - ADMIN
+          example: USER
+      required:
+        - birthday
+        - email
+        - name
+        - password
+        - surname
+    UserDTO:
+      type: object
+      description: Данные пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID пользователя
+          example: 1
+        name:
+          type: string
+          description: Имя
+          example: Иван
+        surname:
+          type: string
+          description: Фамилия
+          example: Иванов
+        patronymic:
+          type: string
+          description: Отчество (опционально)
+          example: Иванович
+        birthday:
+          type: string
+          format: date
+          description: Дата рождения (ГГГГ-ММ-ДД)
+          example: '1990-01-01'
+        email:
+          type: string
+          description: Email
+          example: user@example.com
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата регистрации
+          example: '2023-01-15T12:00:00'
+    UserLoginResponse:
+      type: object
+      description: Ответ с токенами авторизации
+      properties:
+        access_token:
+          type: string
+          description: Access token для авторизации
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token:
+          type: string
+          description: Refresh token для обновления
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/UserDTO'
+    UserLoginRequest:
+      type: object
+      description: Запрос на авторизацию пользователя
+      properties:
+        email:
+          type: string
+          description: Email пользователя
+          example: user@example.com
+        password:
+          type: string
+          description: Пароль
+          example: mySecurePassword123
+          minLength: 1
+      required:
+        - email
+        - password
+    CardReplenishmentRequest:
+      type: object
+      description: Запрос на изменение баланса карты
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID пользователя
+          example: 1
+        cardNumber:
+          type: string
+          description: Номер карты
+          example: '**** **** **** 7890'
+        balance:
+          type: number
+          description: Новый баланс
+          example: 1000
+      required:
+        - balance
+        - cardNumber
+        - userId
+    UserCardRequest:
+      type: object
+      description: Запрос с ID пользователя
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID пользователя
+          example: 1
+      required:
+        - userId
+    UserCardOperationRequest:
+      type: object
+      description: Взаимодействие с картой пользователя
+      required:
+        - userId
+        - cardNumber
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID пользователя
+          example: 1
+        cardNumber:
+          type: string
+          description: Последние 4 цифры карты пользователя
+          example: "7890"
+          pattern: '^\d{4}$'
+    UpdateUserRequest:
+      type: object
+      description: Запрос на обновление данных пользователя
+      properties:
+        name:
+          type: string
+          description: Имя пользователя
+          example: Иван
+          maxLength: 100
+          minLength: 0
+        surname:
+          type: string
+          description: Фамилия пользователя
+          example: Иванов
+          maxLength: 100
+          minLength: 0
+        patronymic:
+          type: string
+          description: Отчество (опционально)
+          example: Иванович
+          maxLength: 100
+          minLength: 0
+        birthday:
+          type: string
+          format: date
+          description: Дата рождения (ГГГГ-ММ-ДД)
+          example: '1990-01-01'
+        email:
+          type: string
+          description: Email пользователя
+          example: user@example.com
+          minLength: 1
+      required:
+        - email
+        - name
+        - surname
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    Page:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items: {}
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        first:
+          type: boolean
+        last:
+          type: boolean
+        pageable:
+          $ref: '#/components/schemas/PageableObject'
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: '#/components/schemas/SortObject'
+        paged:
+          type: boolean
+        pageSize:
+          type: integer
+          format: int32
+        pageNumber:
+          type: integer
+          format: int32
+        unpaged:
+          type: boolean
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

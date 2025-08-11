@@ -6,6 +6,7 @@ import com.example.bankcards.dto.users.UserDTO;
 import com.example.bankcards.dto.users.UserRegisterRequest;
 import com.example.bankcards.service.admin.AdminService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
