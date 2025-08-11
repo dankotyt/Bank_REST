@@ -1,0 +1,165 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-tables
+      author: Danil
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: user_id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: surname
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: patronymic
+                  type: varchar(255)
+              - column:
+                  name: birthday
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: phone_number
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(20)
+              - column:
+                  name: created_at
+                  type: timestamp
+              - column:
+                  name: refresh_token
+                  type: varchar(255)
+              - column:
+                  name: refresh_token_expiry
+                  type: timestamp
+
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: card_id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: card_number
+                  type: varchar(19)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: card_holder
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: decimal(38,2)
+                  defaultValueNumeric: 0
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    referencedTableName: users
+                    foreignKeyName: fk_card_user
+
+  - changeSet:
+      id: 002-insert-sample-data
+      author: Danil
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: name
+                  value: "Иван"
+              - column:
+                  name: surname
+                  value: "Иванов"
+              - column:
+                  name: patronymic
+                  value: "Иванович"
+              - column:
+                  name: birthday
+                  value: "1990-05-15"
+              - column:
+                  name: email
+                  value: "ivanov@example.com"
+              - column:
+                  name: password
+                  value: "$2a$10$xJwL5v5Jz5Z5Z5Z5Z5Z5Z."
+              - column:
+                  name: role
+                  value: "USER"
+              - column:
+                  name: created_at
+                  valueComputed: "CURRENT_TIMESTAMP"
+
+        - insert:
+            tableName: cards
+            columns:
+              - column:
+                  name: card_number
+                  value: "**** **** **** 3456"
+              - column:
+                  name: card_holder
+                  value: "IVAN IVANOV"
+              - column:
+                  name: expiry_date
+                  value: "2025-12-31"
+              - column:
+                  name: balance
+                  valueNumeric: 1000.00
+              - column:
+                  name: status
+                  value: "ACTIVE"
+              - column:
+                  name: user_id
+                  valueNumeric: 1
+
+
+
+
+
+
+
