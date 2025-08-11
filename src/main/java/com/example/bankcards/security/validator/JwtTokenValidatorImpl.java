@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Реализация {@link JwtTokenValidator} для проверки JWT токенов.
+ * Хранит список отозванных токенов в памяти (ConcurrentHashMap).
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -16,6 +20,11 @@ public class JwtTokenValidatorImpl implements JwtTokenValidator {
     private final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();
     private final JwtParser jwtParser;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Не отзывает уже истекшие токены.
+     */
     @Override
     public void revokeToken(String token) {
         if (!jwtParser.isTokenExpired(token)) {
@@ -23,11 +32,24 @@ public class JwtTokenValidatorImpl implements JwtTokenValidator {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isTokenRevoked(String token) {
         return revokedTokens.contains(token);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Проверяет:
+     * 1. Соответствие имени пользователя в токене
+     * 2. Наличие токена в списке отозванных
+     * 3. Срок действия токена
+     * <p>
+     * Логирует ошибки валидации.
+     */
     @Override
     public boolean isTokenValid(String token, User user) {
         try {

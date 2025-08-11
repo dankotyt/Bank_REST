@@ -7,12 +7,18 @@ import com.example.bankcards.util.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Реализация сервиса для работы с профилями пользователей.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final Mapper mapper;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserDTO getUserProfile(Long userId) {
         return userRepository.findById(userId)

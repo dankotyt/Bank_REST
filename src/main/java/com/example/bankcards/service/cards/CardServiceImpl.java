@@ -22,6 +22,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Сервис для выполнения операций с картами пользователей.
+ */
 @Service
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
@@ -29,12 +32,18 @@ public class CardServiceImpl implements CardService {
     private final UserRepository userRepository;
     private final Mapper mapper;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Page<CardDTO> getUserCards(Long userId, String search, Pageable pageable) {
         Specification<Card> spec = createCardSpecification(userId, search);
         return cardRepository.findAll(spec, pageable).map(mapper::toCardDTO);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void blockCard(Long userId, String cardNumber) {
         Card card = findUserCard(userId, cardNumber);
@@ -43,11 +52,27 @@ public class CardServiceImpl implements CardService {
         cardRepository.save(card);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BigDecimal getCardBalance(Long userId, String cardNumber) {
         return findUserCard(userId, cardNumber).getBalance();
     }
 
+    /**
+     * Создает спецификацию для поиска карт пользователя.
+     * <p>
+     * Спецификация включает:
+     * <ul>
+     *   <li>Фильтр по идентификатору пользователя</li>
+     *   <li>Поиск по номеру карты или имени держателя (если search не пустой)</li>
+     * </ul>
+     *
+     * @param userId идентификатор пользователя
+     * @param search поисковый запрос (может быть null или пустым)
+     * @return спецификация для JPA-запроса
+     */
     private Specification<Card> createCardSpecification(Long userId, String search) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -68,6 +93,15 @@ public class CardServiceImpl implements CardService {
         };
     }
 
+    /**
+     * Находит карту пользователя по номеру.
+     *
+     * @param userId идентификатор пользователя
+     * @param cardNumber последние 4 цифры номера карты
+     * @return найденная карта
+     * @throws UserNotFoundException если пользователь не найден
+     * @throws CardNotFoundException если карта не найдена
+     */
     private Card findUserCard(Long userId, String cardNumber) {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -79,6 +113,12 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> new CardNotFoundException(formatCardNumber, user.getEmail()));
     }
 
+    /**
+     * Проверяет возможность блокировки карты.
+     *
+     * @param card карта для проверки
+     * @throws CardOperationException если карта уже заблокирована
+     */
     private void validateCardBlock(Card card) {
         if (card.getStatus() == CardStatus.BLOCKED) {
             throw new CardOperationException("Card is already blocked");

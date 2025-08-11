@@ -21,6 +21,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Реализация {@link JwtService} для работы с JWT токенами.
+ * Генерирует пару токенов через {@link JwtTokenFactory} и сохраняет refresh токен в БД.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,6 +35,12 @@ public class JwtServiceImpl implements JwtService {
     private final Mapper mapper;
     private final JwtTokenFactory jwtTokenFactory;
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Для администраторов добавляет authority ROLE_ADMIN, для обычных пользователей - ROLE_USER.
+     * Сохраняет refresh токен и время его истечения в базу данных.
+     */
     @Override
     public UserLoginResponse generateTokenPair(User user) {
         List<String> authorities = user.getRole() == Role.ADMIN
@@ -51,6 +61,11 @@ public class JwtServiceImpl implements JwtService {
         );
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Логирует предупреждение, если контекст запроса недоступен.
+     */
     @Override
     public String extractAccessTokenFromRequest() {
         try {

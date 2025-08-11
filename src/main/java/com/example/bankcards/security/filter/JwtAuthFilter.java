@@ -98,6 +98,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Извлекает access токен из запроса.
+     * Ищет токен в заголовке Authorization или в куках.
+     *
+     * @param request HTTP запрос
+     * @return access токен или null, если не найден
+     */
     private String extractAccessToken(HttpServletRequest request) {
         String header = request.getHeader(AUTH_HEADER);
         if (header != null && header.startsWith(TOKEN_PREFIX)) {
@@ -115,6 +122,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         return null;
     }
 
+    /**
+     * Извлекает refresh токен из кук запроса.
+     *
+     * @param request HTTP запрос
+     * @return refresh токен или null, если не найден
+     */
     private String extractRefreshToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {

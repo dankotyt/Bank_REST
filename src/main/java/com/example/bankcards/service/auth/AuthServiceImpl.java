@@ -12,12 +12,16 @@ import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.parser.JwtParser;
 import com.example.bankcards.security.service.JwtService;
 import com.example.bankcards.security.validator.JwtTokenValidator;
+import com.example.bankcards.util.generatorNumbers.CardNumberGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+/**
+ * Реализация сервиса для аутентификации и авторизации пользователей.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -27,6 +31,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtParser jwtParser;
     private final JwtTokenValidator jwtTokenValidator;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserLoginResponse register(UserRegisterRequest userRegisterRequest) {
         if (userRepository.existsByEmail(userRegisterRequest.getEmail())) {
@@ -46,6 +53,9 @@ public class AuthServiceImpl implements AuthService {
         return jwtService.generateTokenPair(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -56,6 +66,9 @@ public class AuthServiceImpl implements AuthService {
         return jwtService.generateTokenPair(user);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void logout(String refreshToken) {
         userRepository.findByRefreshToken(refreshToken)
@@ -67,6 +80,9 @@ public class AuthServiceImpl implements AuthService {
                 });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public UserLoginResponse refreshToken(String refreshToken) {
 
